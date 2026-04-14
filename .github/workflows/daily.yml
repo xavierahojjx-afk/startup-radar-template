@@ -1,0 +1,59 @@
+name: Daily Startup Radar
+
+on:
+  schedule:
+    # 15:00 UTC daily = 08:00 PT / 11:00 ET. Edit to taste.
+    - cron: '0 15 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore database
+        uses: actions/cache@v4
+        with:
+          path: startup_radar.db
+          key: startup-radar-db-${{ github.run_id }}
+          restore-keys: |
+            startup-radar-db-
+
+      - name: Write config
+        # Store your config.yaml contents in a repo secret called CONFIG_YAML.
+        # If you use Gmail / Google Sheets, also store CREDENTIALS_JSON and TOKEN_JSON.
+        run: |
+          echo "$CONFIG_YAML" > config.yaml
+          if [ -n "$CREDENTIALS_JSON" ]; then echo "$CREDENTIALS_JSON" > credentials.json; fi
+          if [ -n "$TOKEN_JSON" ]; then echo "$TOKEN_JSON" > token.json; fi
+        env:
+          CONFIG_YAML: ${{ secrets.CONFIG_YAML }}
+          CREDENTIALS_JSON: ${{ secrets.CREDENTIALS_JSON }}
+          TOKEN_JSON: ${{ secrets.TOKEN_JSON }}
+
+      - name: Run pipeline
+        run: python daily_run.py
+
+      - name: Upload database artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: startup-radar-db
+          path: startup_radar.db
+          retention-days: 30
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: logs/
+          retention-days: 7

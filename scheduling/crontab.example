@@ -1,0 +1,5 @@
+# Linux/macOS cron example — runs daily at 08:00 local time.
+# Install with: crontab -e
+# Then paste the line below, updating the path to your repo.
+
+0 8 * * * cd /path/to/startup-radar-template && /usr/bin/env python3 daily_run.py >> logs/cron.log 2>&1

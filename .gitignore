@@ -1,0 +1,36 @@
+
+# Secrets & local config
+config.yaml
+credentials.json
+token.json
+*.env
+.env
+
+# User data
+*.db
+*.sqlite
+*.sqlite3
+connections.csv
+LinkedIn*.csv
+logs/
+reports/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.idea/
+.vscode/
+*.swp

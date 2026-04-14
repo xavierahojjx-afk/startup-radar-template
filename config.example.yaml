@@ -1,0 +1,157 @@
+# Startup Radar — configuration
+#
+# Copy this file to `config.yaml` and edit.
+# The interactive setup skill (run `claude` then `/setup`) will generate this for you.
+
+user:
+  name: "Your Name"
+  # Short background blurb — used by the DeepDive skill when tailoring fit rationales.
+  background: "MBA candidate with 5 years in product strategy, targeting AI-first startups."
+
+# ---------------------------------------------------------------------------
+# What you're looking for
+# ---------------------------------------------------------------------------
+targets:
+  # Job titles you want to match (case-insensitive substring).
+  roles:
+    - chief of staff
+    - gtm
+    - go-to-market
+    - product strategy
+    - partnerships
+    - business development
+    - strategy & operations
+    - bizops
+    - corporate development
+
+  # Titles to exclude as too senior (or too junior).
+  seniority_exclusions:
+    - vp
+    - vice president
+    - director
+    - head of
+    - svp
+    - ceo
+    - cfo
+    - cto
+    - coo
+
+  # Locations you're open to (case-insensitive substring).
+  locations:
+    - san francisco
+    - sf
+    - bay area
+    - palo alto
+    - mountain view
+    - menlo park
+    - san jose
+    - sunnyvale
+    - remote
+
+  # Industry / product keywords — a company must match at least one.
+  industries:
+    - ai
+    - artificial intelligence
+    - ml
+    - machine learning
+    - llm
+    - generative ai
+    - fintech
+    - financial technology
+    - payments
+
+  # Minimum funding stage. Options: pre-seed, seed, series-a, series-b, series-c, any
+  min_stage: series-a
+
+  # Seed rounds at or above this amount (in millions USD) are also included.
+  large_seed_threshold_musd: 50
+
+# ---------------------------------------------------------------------------
+# Where to pull signal from
+# ---------------------------------------------------------------------------
+sources:
+  rss:
+    enabled: true
+    feeds:
+      - name: TechCrunch Venture
+        url: https://techcrunch.com/category/venture/feed/
+      - name: VentureBeat
+        url: https://venturebeat.com/feed/
+      - name: Crunchbase News
+        url: https://news.crunchbase.com/feed/
+
+  hackernews:
+    enabled: true
+    # Algolia HN search queries — one entry per query.
+    queries:
+      - "raised Series A"
+      - "raised Series B"
+      - "announces funding"
+    lookback_hours: 48
+
+  sec_edgar:
+    enabled: true
+    # SEC Form D filings — authoritative for US private raises. Free, no auth.
+    # industry_sic_codes: narrow by SIC code; leave empty to include all.
+    industry_sic_codes: []
+    min_amount_musd: 5
+    lookback_days: 7
+
+  # Optional — requires Google OAuth. See setup skill.
+  gmail:
+    enabled: false
+    label: "Startup Funding"
+    # Senders to route to parsers. Add one per newsletter you subscribe to.
+    senders: {}
+
+# ---------------------------------------------------------------------------
+# Where to write results
+# ---------------------------------------------------------------------------
+output:
+  sqlite:
+    enabled: true
+    path: startup_radar.db
+
+  # Optional — requires Google OAuth.
+  google_sheets:
+    enabled: false
+    sheet_id: ""
+
+# ---------------------------------------------------------------------------
+# LinkedIn connections (optional)
+# ---------------------------------------------------------------------------
+connections:
+  enabled: false
+  # Export from https://www.linkedin.com/mypreferences/d/download-my-data
+  csv_path: ""
+
+# ---------------------------------------------------------------------------
+# DeepDive skill — fit scoring rubric
+# ---------------------------------------------------------------------------
+deepdive:
+  # Weight each factor — higher = more important to you.
+  fit_factors:
+    industry_match: high
+    funding_stage: high
+    location: high
+    role_fit_signals: high
+    founder_pedigree: medium
+    vc_tier: medium
+
+  # VCs you'd consider "top tier" — used by DeepDive scoring.
+  tier1_vcs:
+    - a16z
+    - Sequoia
+    - Accel
+    - Benchmark
+    - Index
+    - Founders Fund
+    - Khosla
+    - GV
+    - Greylock
+    - Coatue
+
+  # Score thresholds
+  thresholds:
+    strong: 7.5
+    moderate: 5.0

@@ -1,0 +1,15 @@
+pyyaml>=6.0
+requests>=2.31.0
+feedparser>=6.0.10
+beautifulsoup4>=4.12.0
+python-dateutil>=2.8.2
+pandas>=2.0.0
+streamlit>=1.30.0
+
+# Optional — only needed if you enable Gmail or Google Sheets
+google-api-python-client>=2.100.0
+google-auth-httplib2>=0.2.0
+google-auth-oauthlib>=1.2.0
+
+# Optional — only needed for the DeepDive skill's .docx output
+python-docx>=1.1.0
