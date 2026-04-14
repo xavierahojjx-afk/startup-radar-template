@@ -6,59 +6,50 @@
 user:
   name: "Your Name"
   # Short background blurb — used by the DeepDive skill when tailoring fit rationales.
-  background: "MBA candidate with 5 years in product strategy, targeting AI-first startups."
+  # Example: "Software engineer, 6 years backend, looking for early-stage infra startups."
+  background: "Describe yourself in one sentence."
 
 # ---------------------------------------------------------------------------
 # What you're looking for
 # ---------------------------------------------------------------------------
 targets:
   # Job titles you want to match (case-insensitive substring).
+  # Replace these with whatever roles you're targeting — e.g. "software engineer",
+  # "product manager", "founding engineer", "data scientist", "designer".
   roles:
-    - chief of staff
-    - gtm
-    - go-to-market
-    - product strategy
-    - partnerships
-    - business development
-    - strategy & operations
-    - bizops
-    - corporate development
+    - software engineer
+    - product manager
+    - founding engineer
+    - data scientist
+    - designer
 
-  # Titles to exclude as too senior (or too junior).
+  # Titles to exclude. Remove these if you WANT senior roles,
+  # or add "intern" / "junior" if you want to skip entry-level.
   seniority_exclusions:
+    - intern
     - vp
-    - vice president
     - director
     - head of
-    - svp
-    - ceo
-    - cfo
-    - cto
-    - coo
 
   # Locations you're open to (case-insensitive substring).
+  # Replace these with whatever cities/regions you care about.
   locations:
+    - new york
+    - nyc
     - san francisco
-    - sf
     - bay area
-    - palo alto
-    - mountain view
-    - menlo park
-    - san jose
-    - sunnyvale
+    - london
+    - berlin
     - remote
 
   # Industry / product keywords — a company must match at least one.
+  # Leave empty to include all industries.
   industries:
     - ai
     - artificial intelligence
-    - ml
     - machine learning
-    - llm
-    - generative ai
-    - fintech
-    - financial technology
-    - payments
+    - developer tools
+    - saas
 
   # Minimum funding stage. Options: pre-seed, seed, series-a, series-b, series-c, any
   min_stage: series-a

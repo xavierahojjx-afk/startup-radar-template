@@ -6,7 +6,7 @@ description: Generate a one-page company research brief (.docx) scored against t
 # DeepDive Skill
 
 ## Trigger
-User types `/deepdive [Company Name]` — e.g. `/deepdive Decagon`.
+User types `/deepdive [Company Name]` — e.g. `/deepdive Anthropic`.
 
 ## What this does
 Researches the named company on the public web and generates a branded one-page research brief as a `.docx` file. The fit score and rationale are tailored to the user's criteria from `config.yaml`.

@@ -22,7 +22,7 @@ You are guiding a new user through configuring their Startup Radar. The repo the
 - One-sentence background (used by the DeepDive skill to tailor fit rationales)
 
 ### 2. What you're looking for
-- Target job titles (examples: "chief of staff", "product manager", "founding engineer")
+- Target job titles (examples: "software engineer", "product manager", "founding engineer", "data scientist")
 - Titles to exclude (examples: "vp", "director" if you don't want senior roles, or "intern", "junior" if you don't want junior roles)
 - Target locations (cities, regions, or "remote")
 - Industries / product keywords (examples: "ai", "fintech", "climate", "biotech")
