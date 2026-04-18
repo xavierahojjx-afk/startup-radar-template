@@ -35,7 +35,7 @@ claude
 Inside Claude Code, type:
 
 ```
-/setup
+/setup-radar
 ```
 
 The setup skill will interview you about your preferences, write your `config.yaml`, walk through optional integrations, and help you pick a scheduling method. Expect 5–15 minutes depending on how many optional features you enable.
@@ -65,7 +65,7 @@ streamlit run app.py
 
 Run inside `claude`:
 
-- `/setup` — interactive onboarding (first-time config)
+- `/setup-radar` — interactive onboarding (first-time config)
 - `/deepdive <CompanyName>` — research a company, generate a .docx fit brief scored against your criteria
 
 ## Scheduling
@@ -88,7 +88,7 @@ Everything is meant to be edited:
 - `.claude/skills/deepdive.md` — tweak the research brief template
 - `filters.py` — custom filter logic beyond what YAML supports
 
-The intended workflow: fork, clone, run `/setup`, then use `claude` to extend whatever you want. The point of this template is that Claude Code writes the "last mile" — custom parsers, custom filters, custom dashboard views — so you don't have to.
+The intended workflow: fork, clone, run `/setup-radar`, then use `claude` to extend whatever you want. The point of this template is that Claude Code writes the "last mile" — custom parsers, custom filters, custom dashboard views — so you don't have to.
 
 ## Optional: Gmail source
 
@@ -102,7 +102,7 @@ If you subscribe to VC newsletters (StrictlyVC, Term Sheet, Venture Daily Digest
 6. Enable `sources.gmail` in `config.yaml`
 7. First run will open a browser for consent and cache `token.json`
 
-Inside Claude Code, `/setup` walks you through this.
+Inside Claude Code, `/setup-radar` walks you through this.
 
 ## Project layout
 
@@ -128,7 +128,7 @@ startup-radar-template/
   .github/workflows/       GitHub Actions daily.yml
   .claude/
     skills/
-      setup.md             /setup interactive onboarding
+      setup.md             /setup-radar interactive onboarding
       deepdive.md          /deepdive company research
     settings.json
 ```

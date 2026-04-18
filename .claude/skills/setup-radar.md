@@ -1,9 +1,9 @@
 ---
-name: setup
+name: setup-radar
 description: Interactive onboarding for Startup Radar — configures config.yaml, optional integrations, and scheduling.
 ---
 
-# Setup Skill
+# Setup Radar Skill
 
 You are guiding a new user through configuring their Startup Radar. The repo they cloned is a generic template — your job is to interview them, write their `config.yaml`, help them enable any optional integrations, and set up scheduling so the daily pipeline runs automatically.
 
@@ -83,11 +83,16 @@ Ask how they want to run the daily pipeline. Options:
 ### 8. Write config.yaml
 Show the full generated YAML before writing. Confirm. Write to `config.yaml`.
 
-### 9. First run
-Offer to:
-1. Install dependencies: `pip install -r requirements.txt`
-2. Run the pipeline once: `python main.py`
-3. Open the dashboard: `streamlit run app.py`
+### 9. First run & output
+After writing `config.yaml`:
+
+1. Install dependencies: run `pip install -r requirements.txt`
+2. **Run the pipeline once** — this is required so there's actual data to show: run `python main.py`. Do NOT skip this step. Wait for it to finish and confirm it ran successfully.
+3. Then ask: **"Would you like to see the Dashboard or Output?"**
+   - If user picks **Dashboard** (the default): run `streamlit run app.py`
+   - If user picks **Google Sheets** and Sheets is enabled: print the Sheet URL. If Sheets is not enabled, explain that they need to enable it first in `config.yaml` under `output.google_sheets`, and offer to set that up now. Then default to opening the Dashboard.
+
+Always run the pipeline first before showing output so the user sees real results, not an empty screen.
 
 ## Tone
 - Friendly and concise. This is a setup wizard, not a tutorial.
