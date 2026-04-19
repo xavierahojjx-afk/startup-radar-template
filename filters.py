@@ -2,7 +2,7 @@
 
 import re
 
-from models import JobMatch, Startup
+from startup_radar.models import JobMatch, Startup
 
 _STAGE_ORDER = {
     "pre-seed": 0,

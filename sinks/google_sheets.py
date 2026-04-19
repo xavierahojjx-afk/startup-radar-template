@@ -5,7 +5,7 @@ Requires Google Cloud OAuth setup (same credentials.json as the Gmail source).
 
 from pathlib import Path
 
-from models import Startup
+from startup_radar.models import Startup
 
 BASE_DIR = Path(__file__).parent.parent
 CREDENTIALS_FILE = BASE_DIR / "credentials.json"

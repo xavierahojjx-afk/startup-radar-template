@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from models import JobMatch, Startup
+from startup_radar.models import JobMatch, Startup
 
 DB_PATH = Path(__file__).parent / "startup_radar.db"
 

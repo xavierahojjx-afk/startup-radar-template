@@ -10,7 +10,7 @@
 | Config / secrets | MED | No schema validation; manual 4-key existence check; secrets stored in repo root |
 | Database | HIGH | New `sqlite3.connect()` per operation across 33 functions; GH Actions cache key is broken |
 | Error handling | MED-HIGH | Silent source failures via bare `except → print()`; `print()` over logging in `main.py` |
-| Code structure | LOW-MED | No `Source` ABC; `_AMOUNT_RE`/`_STAGE_RE` duplicated in 4 files |
+| Code structure | RESOLVED (Phase 3) | `Source` ABC + registry land; `AMOUNT_RE`/`STAGE_RE`/company regexes centralized in `startup_radar/parsing/funding.py`. `main.py` orchestration is one loop over `SOURCES`. |
 | Testing | HIGH | Zero tests; no `tests/`, no `conftest.py`, no CI validation workflow |
 | Dependencies | RESOLVED (Phase 2) | `requirements.txt` removed; `pyproject.toml` + `uv.lock` are authoritative. Optional `google` extras still always-imported when Gmail enabled — cleanup deferred to Phase 3. |
 | Dashboard | HIGH | `app.py` is 1,104 lines; no `@st.cache_data`; `load_data()` re-queries entire DB on every rerun |
@@ -45,12 +45,15 @@
 - But `main.py` uses `print()` 40+ times, redirected through a `_LogStream` wrapper at `daily_run.py:42-58` — workaround, not a design pattern
 - No retries, no circuit breakers, no metrics, no alerting
 
-### 5. Code structure & reuse (LOW-MED)
-- Each source is standalone with a `fetch()` function returning `list[Startup]`. No shared base class.
-- `_AMOUNT_RE` and `_STAGE_RE` duplicated in `rss.py:16`, `hackernews.py:16`, `sec_edgar.py`, `deepdive.py`
-- `models.py:8-30` uses `@dataclass` cleanly
-- `filters.py:47-100+` has `StartupFilter` and `JobFilter` classes — clean
-- `sinks/google_sheets.py` is minimal (54 lines) and properly separated
+### 5. Code structure & reuse (RESOLVED — Phase 3)
+- `Source` ABC at `startup_radar/sources/base.py`; all four built-ins (`rss`, `hackernews`, `sec_edgar`, `gmail`) subclass it.
+- `SOURCES` registry at `startup_radar/sources/registry.py` — adding a source is one new file + one registry line.
+- `AMOUNT_RE`, `STAGE_RE`, `COMPANY_SUBJECT_RE`, `COMPANY_INLINE_RE` consolidated into `startup_radar/parsing/funding.py`. New `parse_amount_musd("$2.5M") -> 2.5` lives there too (caller swap deferred to Phase 5).
+- `_normalize_company` (formerly `main.py:22`) moves to `startup_radar/parsing/normalize.py` as `normalize_company` / `dedup_key`.
+- `main.py` orchestration loop drops from ~50 lines (4 per-source blocks) to ~6 lines over `SOURCES`.
+- `deepdive.py` was flagged here; its regex is independent and migrates with the module in Phase 4.
+- `models.py` moved into the package (`startup_radar/models.py`); `filters.py` and `sinks/google_sheets.py` updated their imports.
+- `filters.py` and `sinks/google_sheets.py` bodies untouched — they relocate in their own phases (5 / 11).
 
 ### 6. Testing (HIGH)
 - Zero tests. No `tests/`, no `test_*.py`, no `conftest.py`

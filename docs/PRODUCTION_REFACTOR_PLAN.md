@@ -69,7 +69,7 @@ Don't commit `uv.lock` AND a `requirements.txt`. Pick `uv.lock` as source of tru
 | 2 | CI scaffolding: ruff + mypy + empty pytest job | 0.5 day | Without tests, all subsequent refactors are risky. Fixtures come later. |
 | 3 | `.claude/` harness: settings.json + sane hooks + subagents | 0.5 day | Lets you safely do everything below. |
 | 4 | `pyproject.toml` + `uv` + `setuptools-scm` + entry-point | 1 day | DX foundation. |
-| 5 | Source ABC + centralized parsing module + registry | 0.5 day | Prerequisite for #6. |
+| 5 | ✅ Source ABC + centralized parsing module + registry | 0.5 day | **DONE Phase 3** — `startup_radar/sources/{base,registry}.py` + `parsing/{funding,normalize}.py`. Tag: `phase-3`. |
 | 6 | Typer CLI built against the new Source registry | 1 day | Order matters: after #5 to avoid rewriting source-orchestration. |
 | 7 | Pydantic config + `.env` + `setuptools-scm` | 0.5 day | |
 | 8 | `startup-radar backup` + `doctor` + `status` | 0.5 day | Resilience. |

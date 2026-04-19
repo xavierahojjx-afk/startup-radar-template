@@ -38,9 +38,14 @@ dev-dependencies = [
 ]
 
 [tool.setuptools]
+packages = [
+    "startup_radar",
+    "startup_radar.sources",
+    "startup_radar.parsing",
+]
 py-modules = [
     "main", "daily_run", "app", "deepdive",
-    "database", "filters", "models",
+    "database", "filters",
     "config_loader", "connections",
 ]
 
@@ -68,7 +73,7 @@ quote-style = "double"
 [tool.mypy]
 python_version = "3.10"
 ignore_missing_imports = true
-files = ["models.py"]
+files = ["startup_radar/models.py", "startup_radar/parsing"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
