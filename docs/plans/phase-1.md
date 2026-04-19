@@ -962,13 +962,16 @@ grep -q '^\.claude/settings\.local\.json$' .gitignore && echo ".gitignore update
 | 8 | Status line `stat` flags differ macOS (`-f`) vs Linux (`-c`) | Medium | Status shows "?" | Mitigated: each `stat` has `\|\|` fallback. Test on both. |
 | 9 | `.claude/settings.json` overwrite loses local user permissions | Low | Annoyance | Surface diff to user before overwrite. Original is in git, so recovery is `git diff`. |
 | 10 | Hooks fire during read-only sessions and waste cycles | Low | Marginal | All hooks <1s except `Stop` (≤5s). Acceptable. |
-| 11 | `Bash(git commit *)` denied — user expects `/ship` workflow | Medium | Workflow gap | Document in `AGENTS.md`: "to commit, run in your shell, not via Claude." Add `/ship` skill in Phase 6. |
+| 11 | `Bash(git commit *)` denied — user expects `/ship` workflow | Medium | Workflow gap | Resolved during execution: built `/ship` skill (originally Phase 6) + `STARTUP_RADAR_SHIP=1` env-var handshake in `pre-bash.sh`. Hook is the policy gate; settings.json `Bash(git commit *)` deny was redundant and conflicted with the handshake — removed. |
 | 12 | `pre-commit-check.sh` flags pre-existing `print()` in `sources/` etc. | High | Noisy first session | Acceptable — scope is `git diff HEAD` so only changed files surface. Either fix or accept as backlog. |
+| 13 | `.claude/settings.json` edits don't take effect mid-session | Certain | First `/ship` after harness install fails | Claude Code reads settings.json at session start; mid-session edits require a session restart. Workaround: user runs `git commit -F /tmp/...` once, then restarts before next `/ship`. Documented here so future-you doesn't waste a turn debugging it. |
 
 ---
 
 ## End of Phase 1 plan
 
 When verified per §10, proceed to:
-- **Phase 2** (per refactor plan re-ordered slot 4): `pyproject.toml` + uv migration + Typer CLI scaffolding.
-- After Phase 2: deferred `.claude/skills/{run,doctor,ship}/` skills become possible.
+- **Phase 2** (per refactor plan re-ordered slot 4): `pyproject.toml` + `uv` migration + `setuptools-scm` versioning + console entry-point.
+- **Phase 3** (slot 5): Source ABC + centralized parsing + registry.
+- **Phase 4** (slot 6): Typer CLI built against the new Source registry.
+- `/ship` skill was brought forward (originally slot 6 / Phase 4 work) — `.claude/skills/{run,doctor}/` still deferred to their respective phases.

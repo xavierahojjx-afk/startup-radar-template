@@ -108,7 +108,6 @@
       "Bash(git checkout -- *)",
       "Bash(git clean -f*)",
       "Bash(git config *)",
-      "Bash(git commit *)",
       "Bash(pip install *)",
       "Bash(pip3 install *)",
       "Edit(.env)",
