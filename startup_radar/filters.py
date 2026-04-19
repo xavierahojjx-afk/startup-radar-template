@@ -1,8 +1,12 @@
 """Config-driven filters for startups and jobs."""
 
+from __future__ import annotations
+
 import re
 
+from startup_radar.config import AppConfig
 from startup_radar.models import JobMatch, Startup
+from startup_radar.parsing.funding import parse_amount_musd
 
 _STAGE_ORDER = {
     "pre-seed": 0,
@@ -32,26 +36,14 @@ def _stage_rank(stage: str) -> int:
     return -1
 
 
-def _parse_amount_musd(amount: str) -> float:
-    if not amount:
-        return 0.0
-    m = re.search(r"\$?\s*([\d,.]+)\s*(m|million|b|billion)", amount, re.IGNORECASE)
-    if not m:
-        return 0.0
-    val = float(m.group(1).replace(",", ""))
-    if m.group(2).lower().startswith("b"):
-        val *= 1000
-    return val
-
-
 class StartupFilter:
-    def __init__(self, cfg: dict):
-        targets = cfg["targets"]
-        self.locations = [loc.lower() for loc in targets.get("locations", [])]
-        self.industries = [ind.lower() for ind in targets.get("industries", [])]
-        self.min_stage = targets.get("min_stage", "any").lower()
+    def __init__(self, cfg: AppConfig) -> None:
+        t = cfg.targets
+        self.locations = [loc.lower() for loc in t.locations]
+        self.industries = [ind.lower() for ind in t.industries]
+        self.min_stage = t.min_stage.lower()
         self.min_stage_rank = _stage_rank(self.min_stage) if self.min_stage != "any" else -1
-        self.large_seed_threshold = float(targets.get("large_seed_threshold_musd", 50))
+        self.large_seed_threshold = float(t.large_seed_threshold_musd)
         self._ind_patterns = [re.compile(r"\b" + re.escape(k) + r"\b") for k in self.industries]
 
     def passes(self, s: Startup) -> bool:
@@ -72,7 +64,8 @@ class StartupFilter:
             return True
         if rank >= self.min_stage_rank:
             return True
-        if rank == 1 and _parse_amount_musd(amount) >= self.large_seed_threshold:
+        musd = parse_amount_musd(amount) or 0.0
+        if rank == 1 and musd >= self.large_seed_threshold:
             return True
         return False
 
@@ -92,11 +85,11 @@ class StartupFilter:
 
 
 class JobFilter:
-    def __init__(self, cfg: dict):
-        targets = cfg["targets"]
-        self.roles = [r.lower() for r in targets.get("roles", [])]
-        self.exclusions = [e.lower() for e in targets.get("seniority_exclusions", [])]
-        self.locations = [loc.lower() for loc in targets.get("locations", [])]
+    def __init__(self, cfg: AppConfig) -> None:
+        t = cfg.targets
+        self.roles = [r.lower() for r in t.roles]
+        self.exclusions = [e.lower() for e in t.seniority_exclusions]
+        self.locations = [loc.lower() for loc in t.locations]
 
     def role_matches(self, title: str) -> bool:
         if not title:

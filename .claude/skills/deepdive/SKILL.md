@@ -12,7 +12,7 @@ User types `/deepdive [Company Name]` — e.g. `/deepdive Anthropic`.
 Researches the named company on the public web and generates a branded one-page research brief as a `.docx` file. The fit score and rationale are tailored to the user's criteria from `config.yaml`.
 
 ## Before starting
-1. Read `config.yaml`. Extract:
+1. Read `config.yaml`. The shape is defined in `startup_radar/config/schema.py` (pydantic `AppConfig` — source of truth since Phase 5). Extract:
    - `user.name` and `user.background`
    - `targets.*` (roles, locations, industries, min_stage)
    - `deepdive.fit_factors` (weights)

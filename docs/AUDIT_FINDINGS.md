@@ -7,7 +7,7 @@
 | Dimension | Severity | Key issue |
 |---|---|---|
 | Entry points | RESOLVED (Phase 4) | Single `startup-radar` console script exposes `run` / `serve` / `deepdive`; `run --scheduled` folds the old `daily_run.py` logging+timeout path. Old root scripts deleted. |
-| Config / secrets | MED | No schema validation; manual 4-key existence check; secrets stored in repo root |
+| Config / secrets | PARTIAL (Phase 5) | Schema validation via pydantic `AppConfig` (`startup_radar/config/`) — resolved. Secrets relocation + `.env` / `pydantic-settings` still open — Phase 13. |
 | Database | HIGH | New `sqlite3.connect()` per operation across 33 functions; GH Actions cache key is broken |
 | Error handling | MED-HIGH | Silent source failures via bare `except → print()`; `print()` over logging in `main.py` |
 | Code structure | RESOLVED (Phase 3) | `Source` ABC + registry land; `AMOUNT_RE`/`STAGE_RE`/company regexes centralized in `startup_radar/parsing/funding.py`. `main.py` orchestration is one loop over `SOURCES`. |
@@ -28,11 +28,10 @@
 - `deepdive.py` re-homed under `startup_radar/research/`; `main.py` and `daily_run.py` deleted. `Makefile` `run`/`serve` targets now delegate to the CLI.
 - Still outstanding: `startup-radar init` / `doctor` / `status` / `backup` (Phase 7–8) and `schedule install` (Phase 14).
 
-### 2. Configuration & secrets (MED)
-- `config_loader.py:29-33` — only validates that 4 top-level keys exist (`user`, `targets`, `sources`, `output`). No schema validation.
-- `credentials.json` and `token.json` live in repo root (not gitignored as XDG dotfiles)
-- `.github/workflows/daily.yml:34-41` writes secrets from repo secrets to files at runtime — fine, but undocumented contract
-- Malformed source config crashes mid-run with unhelpful errors
+### 2. Configuration & secrets (PARTIAL — Phase 5)
+- **RESOLVED (Phase 5):** `config_loader.py` replaced by pydantic `AppConfig` at `startup_radar/config/{schema,loader}.py`. Validation errors point at field paths; `extra="forbid"` catches YAML typos; typed attribute access across `cli.py`, `filters.py`, all 4 sources, `research/deepdive.py`, and `app.py`.
+- **Still open (Phase 13):** `credentials.json` and `token.json` live in repo root (not gitignored as XDG dotfiles); `.env` + `pydantic-settings` for env-var consumers is deferred — no current env-var consumer today, so scaffolding an empty `BaseSettings` is dead code until structlog / Sentry land.
+- `.github/workflows/daily.yml:34-41` writes secrets from repo secrets to files at runtime — fine, but undocumented contract.
 
 ### 3. Database & persistence (HIGH)
 - `database.py:20-23` — every public function opens a fresh `sqlite3.connect()`. WAL is enabled (line 22) but the per-call connection pattern is wasteful with 33 functions

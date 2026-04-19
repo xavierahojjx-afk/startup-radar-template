@@ -15,6 +15,7 @@ from typing import Any
 
 import requests
 
+from startup_radar.config import AppConfig
 from startup_radar.models import Startup
 from startup_radar.sources.base import Source
 
@@ -31,13 +32,13 @@ class SECEdgarSource(Source):
     name = "SEC EDGAR"
     enabled_key = "sec_edgar"
 
-    def fetch(self, cfg: dict[str, Any]) -> list[Startup]:
-        edgar_cfg = cfg.get("sources", {}).get(self.enabled_key, {})
-        if not edgar_cfg.get("enabled"):
+    def fetch(self, cfg: AppConfig) -> list[Startup]:
+        edgar_cfg = cfg.sources.sec_edgar
+        if not edgar_cfg.enabled:
             return []
 
-        lookback_days = int(edgar_cfg.get("lookback_days", 7))
-        sic_codes = edgar_cfg.get("industry_sic_codes") or None
+        lookback_days = int(edgar_cfg.lookback_days)
+        sic_codes = edgar_cfg.industry_sic_codes or None
 
         end = datetime.utcnow().date()
         start = end - timedelta(days=lookback_days)

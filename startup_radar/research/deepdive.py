@@ -18,7 +18,7 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Inches, Pt, RGBColor
 
-from config_loader import load_config
+from startup_radar.config import AppConfig, load_config
 
 REPORTS_DIR = Path.cwd() / "reports"
 REPORTS_DIR.mkdir(exist_ok=True)
@@ -119,18 +119,18 @@ def _search_company(name: str) -> dict:
     return info
 
 
-def _score_company(info: dict, cfg: dict) -> tuple[float, str, str]:
+def _score_company(info: dict, cfg: AppConfig) -> tuple[float, str, str]:
     """Score a company against the user's fit criteria. Returns (score, label, rationale)."""
-    dd_cfg = cfg.get("deepdive", {})
-    factors = dd_cfg.get("fit_factors", {})
-    tier1_vcs = [v.lower() for v in dd_cfg.get("tier1_vcs", [])]
-    thresholds = dd_cfg.get("thresholds", {"strong": 7.5, "moderate": 5.0})
-    targets = cfg.get("targets", {})
+    dd_cfg = cfg.deepdive
+    factors = dd_cfg.fit_factors
+    tier1_vcs = [v.lower() for v in dd_cfg.tier1_vcs]
+    thresholds = dd_cfg.thresholds
+    targets = cfg.targets
 
     weight_map = {"high": 1.5, "medium": 1.0, "low": 0.5}
     scores = {}
 
-    ind_keywords = [k.lower() for k in targets.get("industries", [])]
+    ind_keywords = [k.lower() for k in targets.industries]
     desc = (info.get("description", "") + " " + info.get("name", "")).lower()
     if ind_keywords and any(k in desc for k in ind_keywords):
         scores["industry_match"] = 9
@@ -148,7 +148,7 @@ def _score_company(info: dict, cfg: dict) -> tuple[float, str, str]:
     else:
         scores["funding_stage"] = 4
 
-    locs = [loc.lower() for loc in targets.get("locations", [])]
+    locs = [loc.lower() for loc in targets.locations]
     hq = info.get("hq", "").lower()
     if locs and any(loc in hq for loc in locs):
         scores["location"] = 9
@@ -159,7 +159,7 @@ def _score_company(info: dict, cfg: dict) -> tuple[float, str, str]:
 
     scores["role_fit_signals"] = 6
     for signal in info.get("hiring_signals", []):
-        for role in targets.get("roles", []):
+        for role in targets.roles:
             if role.lower() in signal.lower():
                 scores["role_fit_signals"] = 9
                 break
@@ -176,20 +176,20 @@ def _score_company(info: dict, cfg: dict) -> tuple[float, str, str]:
     total_weight = 0
     weighted_sum = 0
     for factor, raw in scores.items():
-        w = weight_map.get(factors.get(factor, "medium"), 1.0)
+        w = weight_map.get(getattr(factors, factor, "medium"), 1.0)
         weighted_sum += raw * w
         total_weight += 10 * w
 
     final = round((weighted_sum / total_weight) * 10, 1) if total_weight else 5.0
 
-    if final >= thresholds.get("strong", 7.5):
+    if final >= thresholds.strong:
         label = "STRONG FIT"
-    elif final >= thresholds.get("moderate", 5.0):
+    elif final >= thresholds.moderate:
         label = "MODERATE FIT"
     else:
         label = "WEAK FIT"
 
-    user_bg = cfg.get("user", {}).get("background", "")
+    user_bg = cfg.user.background
     rationale_parts = []
     if has_tier1:
         rationale_parts.append("Backed by top-tier VCs")
@@ -210,7 +210,7 @@ def _score_company(info: dict, cfg: dict) -> tuple[float, str, str]:
     return final, label, rationale
 
 
-def _generate_docx(info: dict, score: float, label: str, rationale: str, cfg: dict) -> Path:
+def _generate_docx(info: dict, score: float, label: str, rationale: str, cfg: AppConfig) -> Path:
     """Generate the .docx research brief."""
     doc = Document()
 
@@ -274,7 +274,7 @@ def _generate_docx(info: dict, score: float, label: str, rationale: str, cfg: di
             row[0].text = r.get("round", "")
             row[1].text = r.get("amount", "")
 
-    tier1_vcs = [v.lower() for v in cfg.get("deepdive", {}).get("tier1_vcs", [])]
+    tier1_vcs = [v.lower() for v in cfg.deepdive.tier1_vcs]
     if info.get("investors"):
         doc.add_paragraph("")
         p = doc.add_paragraph("Key Investors: ")

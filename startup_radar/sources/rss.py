@@ -9,11 +9,11 @@ import logging
 import re
 import socket
 from datetime import datetime
-from typing import Any
 
 import feedparser
 from bs4 import BeautifulSoup
 
+from startup_radar.config import AppConfig
 from startup_radar.models import Startup
 from startup_radar.parsing.funding import AMOUNT_RE, COMPANY_SUBJECT_RE, STAGE_RE
 from startup_radar.sources.base import Source
@@ -66,18 +66,18 @@ class RSSSource(Source):
     name = "RSS"
     enabled_key = "rss"
 
-    def fetch(self, cfg: dict[str, Any]) -> list[Startup]:
-        rss_cfg = cfg.get("sources", {}).get(self.enabled_key, {})
-        if not rss_cfg.get("enabled"):
+    def fetch(self, cfg: AppConfig) -> list[Startup]:
+        rss_cfg = cfg.sources.rss
+        if not rss_cfg.enabled:
             return []
         out: list[Startup] = []
-        for feed in rss_cfg.get("feeds", []):
+        for feed in rss_cfg.feeds:
             try:
-                out.extend(self._fetch_one(feed["url"], feed.get("name", feed["url"])))
+                out.extend(self._fetch_one(str(feed.url), feed.name))
             except Exception as e:
                 log.warning(
                     "source.fetch_failed",
-                    extra={"source": self.name, "feed": feed.get("name"), "err": str(e)},
+                    extra={"source": self.name, "feed": feed.name, "err": str(e)},
                 )
         return out
 

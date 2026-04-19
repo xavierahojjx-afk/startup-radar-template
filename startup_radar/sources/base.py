@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
 
+from startup_radar.config import AppConfig
 from startup_radar.models import Startup
 
 
@@ -12,16 +12,16 @@ class Source(ABC):
     """Pluggable data source.
 
     Subclasses MUST set `name` (human-readable) and `enabled_key`
-    (key inside cfg["sources"]). `fetch(cfg)` is the only required
+    (attribute name on cfg.sources). `fetch(cfg)` is the only required
     method; `healthcheck()` is optional and returns True by default
-    (Phase 6's `startup-radar doctor` will use it).
+    (Phase 8's `startup-radar doctor` will use it).
     """
 
     name: str
     enabled_key: str
 
     @abstractmethod
-    def fetch(self, cfg: dict[str, Any]) -> list[Startup]:
+    def fetch(self, cfg: AppConfig) -> list[Startup]:
         """Pull records and return zero or more Startup rows.
 
         On failure, log at WARNING and return []. Never raise out of

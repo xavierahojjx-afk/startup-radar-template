@@ -19,13 +19,13 @@ import pandas as pd
 import streamlit as st
 
 import database
-from config_loader import load_config
+from startup_radar.config import load_config
 
 st.set_page_config(page_title="Startup Radar", page_icon=":satellite:", layout="wide")
 
 try:
     cfg = load_config()
-    sqlite_path = cfg.get("output", {}).get("sqlite", {}).get("path")
+    sqlite_path = cfg.output.sqlite.path if cfg.output.sqlite.enabled else None
     if sqlite_path:
         database.set_db_path(sqlite_path)
 except Exception as e:
@@ -216,7 +216,7 @@ def _add_delete_col(frame):
 
 if page == "Dashboard":
     st.title("Startup Radar")
-    user_name = cfg.get("user", {}).get("name", "")
+    user_name = cfg.user.name
     if user_name:
         st.caption(f"Welcome back, {user_name}")
 

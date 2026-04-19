@@ -67,8 +67,8 @@ class _LogStream(io.TextIOBase):
 def _pipeline() -> int:
     """The actual pipeline. Mirrors pre-Phase-4 main.py:run()."""
     import database
-    from config_loader import load_config
-    from filters import StartupFilter
+    from startup_radar.config import load_config
+    from startup_radar.filters import StartupFilter
     from startup_radar.models import Startup
     from startup_radar.parsing.normalize import dedup_key
     from startup_radar.sources.registry import SOURCES
@@ -79,16 +79,15 @@ def _pipeline() -> int:
     print("=" * 60)
 
     cfg = load_config()
-    output_cfg = cfg.get("output", {})
-    sqlite_cfg = output_cfg.get("sqlite", {})
-    if sqlite_cfg.get("enabled", True) and sqlite_cfg.get("path"):
-        database.set_db_path(sqlite_cfg["path"])
+    sqlite_cfg = cfg.output.sqlite
+    if sqlite_cfg.enabled and sqlite_cfg.path:
+        database.set_db_path(sqlite_cfg.path)
     database.init_db()
 
     all_startups: list[Startup] = []
-    sources_cfg = cfg.get("sources", {})
     for key, source in SOURCES.items():
-        if not sources_cfg.get(key, {}).get("enabled"):
+        sub_cfg = getattr(cfg.sources, key, None)
+        if sub_cfg is None or not getattr(sub_cfg, "enabled", False):
             continue
         print(f"\n[{source.name}] Fetching...")
         found = source.fetch(cfg)
@@ -131,12 +130,12 @@ def _pipeline() -> int:
     else:
         print("No new startups to add")
 
-    sheets_cfg = output_cfg.get("google_sheets", {})
-    if sheets_cfg.get("enabled") and fresh:
+    sheets_cfg = cfg.output.google_sheets
+    if sheets_cfg.enabled and fresh:
         try:
             from sinks import google_sheets
 
-            google_sheets.append_startups(sheets_cfg["sheet_id"], fresh)
+            google_sheets.append_startups(sheets_cfg.sheet_id, fresh)
             print(f"Wrote {len(fresh)} to Google Sheet")
         except Exception as e:
             print(f"Google Sheets write failed: {e}")

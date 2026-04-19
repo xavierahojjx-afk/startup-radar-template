@@ -7,10 +7,10 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any
 
 import requests
 
+from startup_radar.config import AppConfig
 from startup_radar.models import Startup
 from startup_radar.parsing.funding import AMOUNT_RE, COMPANY_SUBJECT_RE, STAGE_RE
 from startup_radar.sources.base import Source
@@ -24,13 +24,13 @@ class HackerNewsSource(Source):
     name = "Hacker News"
     enabled_key = "hackernews"
 
-    def fetch(self, cfg: dict[str, Any]) -> list[Startup]:
-        hn_cfg = cfg.get("sources", {}).get(self.enabled_key, {})
-        if not hn_cfg.get("enabled"):
+    def fetch(self, cfg: AppConfig) -> list[Startup]:
+        hn_cfg = cfg.sources.hackernews
+        if not hn_cfg.enabled:
             return []
 
-        queries = hn_cfg.get("queries", [])
-        lookback_hours = int(hn_cfg.get("lookback_hours", 48))
+        queries = hn_cfg.queries
+        lookback_hours = int(hn_cfg.lookback_hours)
         cutoff = datetime.utcnow() - timedelta(hours=lookback_hours)
         cutoff_ts = int(cutoff.timestamp())
 

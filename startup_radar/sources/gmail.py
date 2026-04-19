@@ -20,8 +20,8 @@ from __future__ import annotations
 import base64
 import logging
 from pathlib import Path
-from typing import Any
 
+from startup_radar.config import AppConfig
 from startup_radar.models import Startup
 from startup_radar.parsing.funding import AMOUNT_RE, COMPANY_INLINE_RE, STAGE_RE
 from startup_radar.sources.base import Source
@@ -113,9 +113,9 @@ class GmailSource(Source):
     name = "Gmail"
     enabled_key = "gmail"
 
-    def fetch(self, cfg: dict[str, Any]) -> list[Startup]:
-        gmail_cfg = cfg.get("sources", {}).get(self.enabled_key, {})
-        if not gmail_cfg.get("enabled"):
+    def fetch(self, cfg: AppConfig) -> list[Startup]:
+        gmail_cfg = cfg.sources.gmail
+        if not gmail_cfg.enabled:
             return []
 
         # Function-scope import: database stays at repo root until Phase 12.
@@ -127,7 +127,7 @@ class GmailSource(Source):
             log.warning("source.fetch_failed", extra={"source": self.name, "err": str(e)})
             return []
 
-        label_name = gmail_cfg.get("label", "Startup Funding")
+        label_name = gmail_cfg.label
 
         try:
             labels_resp = service.users().labels().list(userId="me").execute()

@@ -20,7 +20,7 @@
 
 ## Must do
 - Use `make` targets when one exists; never reinvent.
-- Use a logger; never `print()` in library code (`sources/`, `sinks/`, `database.py`, `filters.py`, `connections.py`).
+- Use a logger; never `print()` in library code (`startup_radar/sources/`, `startup_radar/filters.py`, `sinks/`, `database.py`, `connections.py`).
 - Wrap Streamlit DB reads in `@st.cache_data(ttl=60)`.
 - Set `timeout=` on every `requests`/`httpx` call.
 - Run `make ci` before declaring work done.

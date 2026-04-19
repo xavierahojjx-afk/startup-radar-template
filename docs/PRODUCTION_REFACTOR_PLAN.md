@@ -71,7 +71,7 @@ Don't commit `uv.lock` AND a `requirements.txt`. Pick `uv.lock` as source of tru
 | 4 | `pyproject.toml` + `uv` + `setuptools-scm` + entry-point | 1 day | DX foundation. |
 | 5 | ✅ Source ABC + centralized parsing module + registry | 0.5 day | **DONE Phase 3** — `startup_radar/sources/{base,registry}.py` + `parsing/{funding,normalize}.py`. Tag: `phase-3`. |
 | 6 | ✅ Typer CLI + research/ subpackage + scm versioning | 1 day | **DONE Phase 4** — `startup-radar run|serve|deepdive`; `run --scheduled` folds the old `daily_run.py` logging+timeout; `deepdive.py` relocated to `startup_radar/research/`; `[project.scripts]` + `setuptools-scm` wired. Tag: `phase-4`. |
-| 7 | Pydantic config + `.env` + `setuptools-scm` | 0.5 day | |
+| 7 | ✅ Pydantic config + filters move | 0.5 day | **DONE Phase 5** — `startup_radar/config/{schema,loader}.py` (pydantic `AppConfig`, `extra="forbid"`, field-path error messages); `filters.py` → `startup_radar/filters.py` typed against `AppConfig`; `parse_amount_musd` wired in (retired duplicate `_parse_amount_musd`); `Source.fetch(cfg: AppConfig)` retyped and all 4 sources + `cli.py` + `deepdive.py` + `app.py` updated. `.env` / `pydantic-settings` deferred to Phase 13 (no current env-var consumer). Tag: `phase-5`. |
 | 8 | `startup-radar backup` + `doctor` + `status` | 0.5 day | Resilience. |
 | 9 | GH Actions DB persistence via commit-to-data-branch | 1 day | Pick **one** option. |
 | 10 | vcrpy fixtures + real source tests | 3-4 days | Underestimated in v1.0; cassette recording is fiddly. |
@@ -295,11 +295,13 @@ class Source(ABC):
 `main.py:60-95` becomes a 5-line loop over `SOURCES`. Adding a source = one file + one registry line.
 
 ### 3.3 Pydantic config + `.env` for secrets
-Replace `config_loader.py:29-33` (4-key existence check) with a pydantic schema:
-- Validation errors point at line/field
+**Schema portion DONE — Phase 5.** `startup_radar/config/schema.py` (pydantic `AppConfig`) replaces `config_loader.py`'s 4-key existence check:
+- Validation errors point at field paths (e.g. `targets.min_stage: Input should be 'pre-seed', 'seed', ...`)
+- `extra="forbid"` catches YAML typos
 - IDE autocomplete on `cfg.targets.min_stage`
-- Secrets via `pydantic-settings` from `.env` (never YAML)
-- `.env.example` committed; `.env` already gitignored
+- `startup_radar/config/loader.py::load_config()` is the one entry point, returning `AppConfig`
+
+Still open (Phase 13): secrets via `pydantic-settings` from `.env`. No current env-var consumer, so `Secrets(BaseSettings)` is deferred to alongside structlog + Sentry (`SENTRY_DSN` becomes the first tenant). `.env.example` will be committed then.
 
 ### 3.4 Dashboard decomposition
 `app.py` is 1,104 lines and re-runs everything on every click. Move each page into `web/pages/N_name.py` (Streamlit native multi-page). Extract:

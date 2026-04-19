@@ -49,3 +49,12 @@ def test_registry_has_all_sources() -> None:
     from startup_radar.sources.registry import SOURCES
 
     assert set(SOURCES.keys()) >= {"rss", "hackernews", "sec_edgar"}
+
+
+def test_config_loads_as_appconfig() -> None:
+    """Phase 5: load_config returns a typed AppConfig."""
+    from startup_radar.config import AppConfig, load_config
+
+    cfg = load_config()
+    assert isinstance(cfg, AppConfig)
+    assert cfg.targets.min_stage == "series-a"

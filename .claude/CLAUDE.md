@@ -9,7 +9,7 @@ Single-user Python tool that aggregates startup-funding signals from RSS, Hacker
 - Web: Streamlit (single-file `app.py`, ~1100 LOC; multi-page split in Phase 11).
 - HTTP: `requests` today; migrating to `httpx` in Phase 13.
 - Parsing: `feedparser`, `beautifulsoup4`.
-- Configuration: `config.yaml` validated by `config_loader.py`; pydantic schema lands Phase 7.
+- Configuration: `config.yaml` validated by pydantic `AppConfig` in `startup_radar/config/` (Phase 5).
 - Secrets: `credentials.json`, `token.json`, `.env` — never commit, never read via shell.
 
 ## Repo layout
@@ -17,12 +17,12 @@ Single-user Python tool that aggregates startup-funding signals from RSS, Hacker
 .
 ├── app.py                                   # Streamlit dashboard (5 pages, single file; split Phase 11)
 ├── database.py                              # SQLite layer (33 fns; moves to startup_radar/storage/ Phase 12)
-├── filters.py                               # StartupFilter + JobFilter (moves Phase 5)
-├── config_loader.py                         # YAML loader (pydantic schema replaces it Phase 5)
 ├── connections.py                           # LinkedIn CSV → tier-1/tier-2 (moves Phase 11)
 ├── startup_radar/                           # the package (created Phase 3)
 │   ├── cli.py                               # Typer CLI (Phase 4): run, serve, deepdive; `run --scheduled` is the cron entry
 │   ├── models.py                            # @dataclass Startup, JobMatch
+│   ├── filters.py                           # StartupFilter + JobFilter (moved from root in Phase 5)
+│   ├── config/{schema,loader}.py            # pydantic AppConfig (Phase 5) — single source of truth for config.yaml
 │   ├── parsing/{funding,normalize}.py       # AMOUNT_RE/STAGE_RE/COMPANY_*; normalize_company, dedup_key
 │   ├── research/deepdive.py                 # AI research brief generator (moved from root in Phase 4)
 │   └── sources/                             # Source ABC + per-source subclasses
@@ -45,7 +45,7 @@ Target layout (Phase 11+) lives in `docs/PRODUCTION_REFACTOR_PLAN.md` §3.1.
 - **Must:** funding regexes (`AMOUNT_RE`, `STAGE_RE`, `COMPANY_SUBJECT_RE`, `COMPANY_INLINE_RE`) live ONLY in `startup_radar/parsing/funding.py`. Never re-introduce duplicates per source.
 - **Must:** company-name normalization goes through `normalize_company` / `dedup_key` in `startup_radar/parsing/normalize.py`.
 - **Never:** `print()` outside `startup_radar/cli.py`, `startup_radar/research/deepdive.py`, or `tests/` — use `logging.getLogger(__name__)`.
-- **Never:** `os.getenv()` outside `config_loader.py` (later: `startup_radar/config/`).
+- **Never:** `os.getenv()` outside `startup_radar/config/` (Phase 13 adds `secrets.py` there for `.env` consumers).
 - **Never:** edit `credentials.json`, `token.json`, `.env`, `uv.lock`, or `*.db` files.
 - **Never:** reintroduce `requirements.txt` — `pyproject.toml` + `uv.lock` are authoritative since Phase 2.
 - **Never:** add Postgres, alembic, async pipeline, or dashboard auth — out of scope per `docs/CRITIQUE_APPENDIX.md` §12.
@@ -71,7 +71,7 @@ uv run startup-radar deepdive "Anthropic" # research brief .docx
 - GH Actions cache for the SQLite DB is unsound (`docs/CRITIQUE_APPENDIX.md` §1, item 1) — Phase 9 replaces it with commit-to-data-branch.
 - OAuth scopes for Gmail (`gmail.readonly`) and Sheets (`spreadsheets`) are merged into a single `token.json` — Phase 0 fix.
 - Dedup key strips legal suffixes (`inc`, `llc`, `corp`, `gmbh`, `labs`, etc.) — see `LEGAL_SUFFIX_RE` in `startup_radar/parsing/normalize.py`. Real failure mode is "OpenAI" vs "Open AI Inc.", not whitespace.
-- `parse_amount_musd("$2.5M") -> 2.5` lives in `startup_radar/parsing/funding.py` but is NOT yet wired into `filters.py` (which keeps its own copy until Phase 5).
+- `parse_amount_musd("$2.5M") -> 2.5` from `startup_radar/parsing/funding.py` is the canonical amount parser — `startup_radar/filters.py` uses it (the duplicate `_parse_amount_musd` retired in Phase 5).
 - CLI entry-point is registered via `[project.scripts]` in `pyproject.toml` and the `startup_radar.cli:app` shim — `uv sync --all-extras` refreshes it after edits to `cli.py` are not needed (editable install), but adding/removing commands does require a re-sync to refresh the `startup-radar` script wrapper.
 - Version is derived by `setuptools-scm` from the git tag history (`phase-*` tags yield dev-style versions; `fallback_version = "0.1.0"` for source tarballs).
 

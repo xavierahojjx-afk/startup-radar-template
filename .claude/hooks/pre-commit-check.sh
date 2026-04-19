@@ -42,7 +42,7 @@ fi
 
 # 3. os.getenv outside config layer
 if [ -n "${PY_FILES}" ]; then
-  CONFIG_OK=$(echo "${PY_FILES}" | grep -Ev '^(config_loader\.py|startup_radar/config/)' || true)
+  CONFIG_OK=$(echo "${PY_FILES}" | grep -Ev '^startup_radar/config/' || true)
   if [ -n "${CONFIG_OK}" ]; then
     ENV=$(echo "${CONFIG_OK}" | xargs grep -lE 'os\.getenv|os\.environ\b' 2>/dev/null | head -3 || true)
     if [ -n "${ENV}" ]; then
