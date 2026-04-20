@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from startup_radar.config import secrets
+from startup_radar.http import get_client
 from startup_radar.observability.logging import configure_logging
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -28,6 +29,13 @@ def _clear_secrets_cache() -> None:
     """Reset the lru-cached `Secrets` singleton between tests so monkeypatched
     env vars don't leak across test boundaries."""
     secrets.cache_clear()  # type: ignore[attr-defined]
+
+
+@pytest.fixture(autouse=True)
+def _clear_http_client_cache() -> None:
+    """Reset the shared httpx.Client cache between tests so per-test tweaks to
+    `cfg.network.timeout_seconds` don't leak."""
+    get_client.cache_clear()  # type: ignore[attr-defined]
 
 
 @pytest.fixture(autouse=True)

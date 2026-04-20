@@ -34,16 +34,6 @@ def test_oauth_scopes_unified() -> None:
     assert "https://www.googleapis.com/auth/spreadsheets" in gmail_scopes
 
 
-def test_rss_socket_timeout_set() -> None:
-    """Phase 0 #4: RSS module must set a socket-level timeout at import."""
-    import socket
-
-    import startup_radar.sources.rss  # noqa: F401
-
-    assert socket.getdefaulttimeout() is not None
-    assert socket.getdefaulttimeout() <= 30
-
-
 def test_registry_has_all_sources() -> None:
     """Phase 3: Source ABC + registry. Every built-in source self-registers."""
     from startup_radar.sources.registry import SOURCES

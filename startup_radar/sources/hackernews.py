@@ -7,9 +7,10 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-import requests
+import httpx
 
 from startup_radar.config import AppConfig
+from startup_radar.http import get_client
 from startup_radar.models import Startup
 from startup_radar.observability.logging import get_logger
 from startup_radar.parsing.funding import AMOUNT_RE, COMPANY_SUBJECT_RE, STAGE_RE
@@ -33,15 +34,14 @@ class HackerNewsSource(Source):
             return (True, f"{len(queries)} query(ies) configured")
 
         try:
-            r = requests.get(
+            r = get_client(cfg).get(
                 "https://hn.algolia.com/api/v1/search",
                 params={"query": "startup", "hitsPerPage": "1"},
-                timeout=10,
             )
             if r.status_code == 200:
                 return (True, "Algolia API HTTP 200")
             return (False, f"Algolia API HTTP {r.status_code}")
-        except requests.RequestException as e:
+        except httpx.HTTPError as e:
             return (False, f"Algolia unreachable: {e.__class__.__name__}")
 
     def fetch(self, cfg: AppConfig, storage=None) -> list[Startup]:
@@ -53,7 +53,7 @@ class HackerNewsSource(Source):
         lookback_hours = int(hn_cfg.lookback_hours)
         cutoff = datetime.utcnow() - timedelta(hours=lookback_hours)
         cutoff_ts = int(cutoff.timestamp())
-        timeout = cfg.network.timeout_seconds
+        client = get_client(cfg)
 
         seen_titles: set[str] = set()
         results: list[Startup] = []
@@ -61,7 +61,7 @@ class HackerNewsSource(Source):
         for query in queries:
             try:
                 resp = retry(
-                    lambda q=query: requests.get(
+                    lambda q=query: client.get(
                         ALGOLIA_URL,
                         params={
                             "query": q,
@@ -69,9 +69,8 @@ class HackerNewsSource(Source):
                             "numericFilters": f"created_at_i>{cutoff_ts}",
                             "hitsPerPage": 50,
                         },
-                        timeout=timeout,
                     ),
-                    on=(requests.RequestException, TimeoutError),
+                    on=(httpx.HTTPError, TimeoutError),
                     context={"source": self.name, "query": query},
                 )
                 resp.raise_for_status()

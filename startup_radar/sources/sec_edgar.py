@@ -12,9 +12,10 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any
 
-import requests
+import httpx
 
 from startup_radar.config import AppConfig
+from startup_radar.http import get_client
 from startup_radar.models import Startup
 from startup_radar.observability.logging import get_logger
 from startup_radar.sources._retry import retry
@@ -43,16 +44,14 @@ class SECEdgarSource(Source):
             return (True, f"{len(sic)} SIC code(s) configured")
 
         try:
-            r = requests.head(
+            r = get_client(cfg).head(
                 EDGAR_BROWSE_URL,
                 headers={"User-Agent": _USER_AGENT},
-                timeout=10,
-                allow_redirects=True,
             )
             if r.status_code < 400:
                 return (True, f"EDGAR HTTP {r.status_code}")
             return (False, f"EDGAR HTTP {r.status_code}")
-        except requests.RequestException as e:
+        except httpx.HTTPError as e:
             return (False, f"EDGAR unreachable: {e.__class__.__name__}")
 
     def fetch(self, cfg: AppConfig, storage=None) -> list[Startup]:
@@ -76,13 +75,11 @@ class SECEdgarSource(Source):
         if sic_codes:
             params["sic"] = ",".join(sic_codes)
 
-        timeout = cfg.network.timeout_seconds
+        client = get_client(cfg)
         try:
             resp = retry(
-                lambda: requests.get(
-                    EDGAR_SEARCH_URL, params=params, headers=EDGAR_HEADERS, timeout=timeout
-                ),
-                on=(requests.RequestException, TimeoutError),
+                lambda: client.get(EDGAR_SEARCH_URL, params=params, headers=EDGAR_HEADERS),
+                on=(httpx.HTTPError, TimeoutError),
                 context={"source": self.name},
             )
             resp.raise_for_status()

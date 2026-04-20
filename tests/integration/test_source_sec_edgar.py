@@ -62,8 +62,8 @@ def test_sec_edgar_http_500_logs_and_returns_empty(
 def test_sec_edgar_retries_then_succeeds(
     edgar_cfg: AppConfig, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Two TimeoutErrors then a 200 → retry helper drives fetch to completion."""
-    import requests
+    """Two ReadTimeouts then a 200 → retry helper drives fetch to completion."""
+    import httpx
 
     from startup_radar.sources import sec_edgar as edgar_module
 
@@ -91,10 +91,13 @@ def test_sec_edgar_retries_then_succeeds(
     def _flaky(*_a: object, **_kw: object) -> _Resp:
         calls["n"] += 1
         if calls["n"] < 3:
-            raise requests.Timeout("transient")
+            raise httpx.ReadTimeout("transient")
         return _Resp()
 
-    monkeypatch.setattr(edgar_module.requests, "get", _flaky)
+    class _StubClient:
+        get = staticmethod(_flaky)
+
+    monkeypatch.setattr(edgar_module, "get_client", lambda _cfg: _StubClient())
     out = SECEdgarSource().fetch(edgar_cfg)
     assert calls["n"] == 3
     assert len(out) == 1

@@ -1,11 +1,11 @@
 """RSS source integration tests.
 
-feedparser uses `urllib.request` directly, not `requests`. vcrpy's stubs
-don't reliably intercept that path (plan Phase 8 §5 Risk #1), so this file
-monkeypatches `feedparser.parse` to return synthetic FeedParserDicts
-instead of using cassettes. The contract under test is the same:
-`RSSSource.fetch(cfg) -> list[Startup]` against the three canonical
-shapes (populated feed, empty feed, malformed/bozo feed).
+Phase 13: the RSS source fetches the feed body via the shared ``httpx.Client``
+and hands bytes to ``feedparser.parse``. Tests stub both layers — ``get_client``
+returns a fake client yielding canned bytes, and ``feedparser.parse`` is
+monkeypatched to return a synthetic ``FeedParserDict``. The contract under
+test is unchanged: ``RSSSource.fetch(cfg) -> list[Startup]`` across populated,
+empty, and failure cases.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import feedparser
+import httpx
 import pytest
 import yaml
 
@@ -47,6 +48,22 @@ def _feed(entries: list[dict[str, Any]]) -> feedparser.util.FeedParserDict:
     return parsed
 
 
+class _FakeResp:
+    content = b"<rss/>"
+
+    def raise_for_status(self) -> None:
+        return None
+
+
+class _FakeClient:
+    def get(self, _url: str) -> _FakeResp:
+        return _FakeResp()
+
+
+def _stub_client(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(rss_module, "get_client", lambda _cfg: _FakeClient())
+
+
 def test_rss_happy_path(rss_cfg: AppConfig, monkeypatch: pytest.MonkeyPatch) -> None:
     """Feed with >=2 funding-shaped items → Startup rows with amount + company."""
     canned = _feed(
@@ -68,7 +85,10 @@ def test_rss_happy_path(rss_cfg: AppConfig, monkeypatch: pytest.MonkeyPatch) -> 
             },
         ]
     )
-    monkeypatch.setattr(rss_module, "feedparser", type("M", (), {"parse": lambda _url: canned}))
+    _stub_client(monkeypatch)
+    monkeypatch.setattr(
+        rss_module, "feedparser", type("M", (), {"parse": staticmethod(lambda _b: canned)})
+    )
     out = RSSSource().fetch(rss_cfg)
     assert len(out) == 2
     first = out[0]
@@ -81,7 +101,10 @@ def test_rss_happy_path(rss_cfg: AppConfig, monkeypatch: pytest.MonkeyPatch) -> 
 def test_rss_empty_feed(rss_cfg: AppConfig, monkeypatch: pytest.MonkeyPatch) -> None:
     """Valid feed with zero entries → [] cleanly."""
     canned = _feed([])
-    monkeypatch.setattr(rss_module, "feedparser", type("M", (), {"parse": lambda _url: canned}))
+    _stub_client(monkeypatch)
+    monkeypatch.setattr(
+        rss_module, "feedparser", type("M", (), {"parse": staticmethod(lambda _b: canned)})
+    )
     assert RSSSource().fetch(rss_cfg) == []
 
 
@@ -90,11 +113,12 @@ def test_rss_fetch_exception_logs_and_returns_empty(
     caplog: pytest.LogCaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """feedparser raises (e.g. malformed XML / network hiccup) → warn + []."""
+    """feedparser raises (e.g. malformed XML) → warn + []."""
 
-    def _boom(_url: str) -> Any:
+    def _boom(_b: bytes) -> Any:
         raise RuntimeError("malformed feed")
 
+    _stub_client(monkeypatch)
     monkeypatch.setattr(rss_module, "feedparser", type("M", (), {"parse": staticmethod(_boom)}))
     caplog.set_level(logging.WARNING, logger="startup_radar.sources.rss")
     out = RSSSource().fetch(rss_cfg)
@@ -103,7 +127,7 @@ def test_rss_fetch_exception_logs_and_returns_empty(
 
 
 def test_rss_retries_then_succeeds(rss_cfg: AppConfig, monkeypatch: pytest.MonkeyPatch) -> None:
-    """feedparser.parse fails twice then succeeds → retry helper unwraps it."""
+    """Two httpx.ConnectErrors then a 200 → retry helper unwraps via shared client."""
     calls = {"n": 0}
     canned = _feed(
         [
@@ -115,13 +139,17 @@ def test_rss_retries_then_succeeds(rss_cfg: AppConfig, monkeypatch: pytest.Monke
         ]
     )
 
-    def _flaky(_url: str) -> Any:
-        calls["n"] += 1
-        if calls["n"] < 3:
-            raise RuntimeError("transient")
-        return canned
+    class _FlakyClient:
+        def get(self, _url: str) -> _FakeResp:
+            calls["n"] += 1
+            if calls["n"] < 3:
+                raise httpx.ConnectError("transient")
+            return _FakeResp()
 
-    monkeypatch.setattr(rss_module, "feedparser", type("M", (), {"parse": staticmethod(_flaky)}))
+    monkeypatch.setattr(rss_module, "get_client", lambda _cfg: _FlakyClient())
+    monkeypatch.setattr(
+        rss_module, "feedparser", type("M", (), {"parse": staticmethod(lambda _b: canned)})
+    )
     out = RSSSource().fetch(rss_cfg)
     assert calls["n"] == 3
     assert len(out) == 1

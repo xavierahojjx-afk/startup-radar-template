@@ -11,7 +11,6 @@ requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = [
     "pyyaml>=6.0",
-    "requests>=2.31.0",
     "feedparser>=6.0.10",
     "beautifulsoup4>=4.12.0",
     "python-dateutil>=2.8.2",
@@ -23,6 +22,7 @@ dependencies = [
     "pydantic>=2.5",
     "structlog>=24.0",
     "pydantic-settings>=2.13.1",
+    "httpx>=0.27",
 ]
 
 [project.optional-dependencies]
@@ -94,6 +94,7 @@ files = [
     "startup_radar/parsing",
     "startup_radar/config",
     "startup_radar/filters.py",
+    "startup_radar/http.py",
     "startup_radar/observability",
     "startup_radar/sources/_retry.py",
 ]

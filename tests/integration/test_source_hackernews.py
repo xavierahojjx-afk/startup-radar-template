@@ -58,8 +58,8 @@ def test_hackernews_http_500_logs_and_returns_empty(
 def test_hackernews_retries_then_succeeds(
     hn_cfg: AppConfig, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Two RequestExceptions then a 200 → retry unwraps to a populated fetch."""
-    import requests
+    """Two ConnectErrors then a 200 → retry unwraps to a populated fetch."""
+    import httpx
 
     from startup_radar.sources import hackernews as hn_module
 
@@ -84,10 +84,13 @@ def test_hackernews_retries_then_succeeds(
     def _flaky(*_a: object, **_kw: object) -> _Resp:
         calls["n"] += 1
         if calls["n"] < 3:
-            raise requests.ConnectionError("transient")
+            raise httpx.ConnectError("transient")
         return _Resp()
 
-    monkeypatch.setattr(hn_module.requests, "get", _flaky)
+    class _StubClient:
+        get = staticmethod(_flaky)
+
+    monkeypatch.setattr(hn_module, "get_client", lambda _cfg: _StubClient())
     out = HackerNewsSource().fetch(hn_cfg)
     assert calls["n"] == 3
     assert len(out) == 1

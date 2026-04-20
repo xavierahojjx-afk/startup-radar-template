@@ -7,7 +7,7 @@ Single-user Python tool that aggregates startup-funding signals from RSS, Hacker
 - Package manager: `uv` — `pyproject.toml` + `uv.lock` are the source of truth (Phase 2). Add deps via `uv add <pkg>`; never reintroduce `requirements.txt`.
 - DB: SQLite, single file (`startup_radar.db`).
 - Web: Streamlit (single-file `app.py`, ~1100 LOC; multi-page split in Phase 11).
-- HTTP: `requests` today; migrating to `httpx` in Phase 13.
+- HTTP: shared `httpx.Client` via `startup_radar/http.py::get_client(cfg)` (Phase 13). `requests` is no longer a direct dep.
 - Parsing: `feedparser`, `beautifulsoup4`.
 - Configuration: `config.yaml` validated by pydantic `AppConfig` in `startup_radar/config/` (Phase 5).
 - Secrets: `credentials.json`, `token.json`, `.env` — never commit, never read via shell.
@@ -53,7 +53,7 @@ Single-user Python tool that aggregates startup-funding signals from RSS, Hacker
 Target layout (Phase 10+) lives in `docs/PRODUCTION_REFACTOR_PLAN.md` §3.1.
 
 ## Core invariants
-- **Must:** every new HTTP call uses `timeout=` (or shared `httpx.Client` once it lands). `feedparser` is the exception — see `startup_radar/sources/rss.py` (sets `socket.setdefaulttimeout(20)` at module load).
+- **Must:** every outbound HTTP call goes through `startup_radar.http.get_client(cfg)` — the process-wide `httpx.Client` whose default timeout is `cfg.network.timeout_seconds` and whose default `User-Agent` is `startup-radar/<version>`. No bare `httpx.get` / `requests.*` anywhere under `startup_radar/` (the lone exception is `sources/gmail.py`'s `google.auth.transport.requests.Request`, which is google-auth's internal transport, not our `requests` use).
 - **Must:** every source subclasses `startup_radar.sources.base.Source`, sets `name` + `enabled_key`, and implements `fetch(cfg, storage=None) -> list[Startup]`. Free-function `fetch(...)` is gone since Phase 3. `storage` is only consumed by sources that dedup (today: `gmail.py` via `is_processed` / `mark_processed`).
 - **Must:** every source registers in `startup_radar/sources/registry.py`.
 - **Must:** funding regexes (`AMOUNT_RE`, `STAGE_RE`, `COMPANY_SUBJECT_RE`, `COMPANY_INLINE_RE`) live ONLY in `startup_radar/parsing/funding.py`. Never re-introduce duplicates per source.
@@ -83,7 +83,8 @@ uv run startup-radar backup [--no-secrets] [--db-only] # local tar.gz of DB + co
 
 ## Gotchas
 - `data` branch (GH Actions DB store, Phase 7) — NEVER delete, rebase, or force-push from a developer machine. The daily workflow writes to it; the weekly GC workflow is the only sanctioned force-pusher. To pull the prod DB locally: `git fetch origin data:data && git checkout data -- startup_radar.db`.
-- `feedparser` does NOT take a `timeout` kwarg — `startup_radar/sources/rss.py` uses `socket.setdefaulttimeout(20)` at module load.
+- `feedparser` has no HTTP of its own anymore — Phase 13 flipped `sources/rss.py` to fetch via `get_client(cfg).get(url)` then `feedparser.parse(r.content)`. The old `socket.setdefaulttimeout(20)` hack is gone; timeout is inherited from the shared client.
+- Shared `httpx.Client` is process-cached by `get_client(cfg)` (keyed on `cfg.network.timeout_seconds`). Tests call `get_client.cache_clear()` via an autouse fixture in `tests/conftest.py` alongside `secrets.cache_clear()`. To stub the client in tests, monkeypatch `startup_radar.sources.<name>.get_client` to return a fake client.
 - SEC EDGAR requires `User-Agent: Name email@example.com` header AND ≤10 req/s.
 - Streamlit re-runs the entire script on every interaction — wrap DB reads in `@st.cache_data(ttl=60)` via `startup_radar/web/cache.py`. Writes invalidate immediately by calling `load_data.clear()` after the insert.
 - Dashboard sidebar (Run-pipeline button + LinkedIn uploader) lives ONLY in `startup_radar/web/app.py` (the shell). Native multi-page runs the shell on every page render, so sidebar code in the shell appears on every page — do NOT duplicate into pages.
