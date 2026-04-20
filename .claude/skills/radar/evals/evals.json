@@ -1,0 +1,27 @@
+{
+  "skill_name": "radar",
+  "note": "Dry-run routing evals. Subagent MUST NOT execute any pipeline/serve/backup command. Output is a single JSON file decision.json with {action, preconditions_checked, reasoning}.",
+  "evals": [
+    {
+      "id": "radar-first-run",
+      "prompt": "ok i just cloned this repo, set me up from scratch",
+      "state_simulation": "HAS_CONFIG=false, HAS_DB=false, HAS_TOKEN=false, SYNCED=false (uv.lock present but no .venv)",
+      "expected_output": "decision.json with action='Onboard' (or equivalent setup action); reasoning cites missing config.yaml.",
+      "files": []
+    },
+    {
+      "id": "radar-whats-new",
+      "prompt": "whats new this week, run my radar",
+      "state_simulation": "HAS_CONFIG=true, HAS_DB=true, HAS_TOKEN=true (gmail enabled), SYNCED=true",
+      "expected_output": "decision.json with action='Run' (pipeline run); reasoning references wanting fresh rows.",
+      "files": []
+    },
+    {
+      "id": "radar-broken",
+      "prompt": "something feels off, is my setup broken? last run returned 0 rows",
+      "state_simulation": "HAS_CONFIG=true, HAS_DB=true, HAS_TOKEN=true, SYNCED=true",
+      "expected_output": "decision.json with action='Doctor' (healthcheck); reasoning references diagnosing rather than re-running.",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "eval_id": "research-anthropic",
+  "eval_name": "research-anthropic",
+  "prompt": "Do a deepdive on Anthropic for me — I want a research brief I can use before applying.",
+  "assertions": [
+    {"text": "Research brief .docx is saved at outputs/reports/Anthropic_Research_Brief.docx (or similar; docx extension required).", "kind": "file_exists"},
+    {"text": "Investors JSON saved at outputs/reports/Anthropic_investors.json — a JSON array of investor company-name strings.", "kind": "file_exists_and_json_array"},
+    {"text": "Fit score (a number out of 10) appears in the .docx, alongside a STRONG / MODERATE / WEAK label.", "kind": "docx_contains"},
+    {"text": "Fit rationale paragraph references the user.background phrasing from config (not a generic 'strong fit' sentence).", "kind": "docx_contains_specific"},
+    {"text": "At least one investor is recognized as a tier-1 VC per config.deepdive.tier1_vcs (e.g. Google / GV / Spark / a16z etc. — whichever the research surfaces).", "kind": "docx_contains_tier1_flag"},
+    {"text": "Funding history table includes at least one round with amount and date — no fabricated numbers (the brief says 'not disclosed' when missing).", "kind": "docx_contains_funding_row"},
+    {"text": "Role Fit Signals section references at least one of config.targets.roles (software engineer / product manager / founding engineer / data scientist / designer).", "kind": "docx_contains_targets_role"}
+  ]
+}

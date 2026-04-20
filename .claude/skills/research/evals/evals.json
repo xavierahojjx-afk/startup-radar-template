@@ -1,0 +1,17 @@
+{
+  "skill_name": "research",
+  "evals": [
+    {
+      "id": "research-anthropic",
+      "prompt": "Do a deepdive on Anthropic for me — I want a research brief I can use before applying.",
+      "expected_output": "reports/Anthropic_Research_Brief.docx + reports/Anthropic_investors.json; fit score referencing user.background + targets.roles from config; investors list flags any tier-1 VCs from deepdive.tier1_vcs.",
+      "files": []
+    },
+    {
+      "id": "research-clay",
+      "prompt": "what do you think about Clay (clay.com, the GTM / sales-automation startup) — should I apply?",
+      "expected_output": "reports/Clay_Research_Brief.docx + reports/Clay_investors.json; GTM/sales industry is NOT in config's targets.industries list, so brief should honestly score lower on industry_match but still produce a real fit paragraph referencing user.background.",
+      "files": []
+    }
+  ]
+}

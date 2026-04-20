@@ -1,0 +1,13 @@
+{
+  "eval_id": "radar-first-run",
+  "eval_name": "radar-first-run",
+  "prompt": "ok i just cloned this repo, set me up from scratch",
+  "state_simulation": {"HAS_CONFIG": false, "HAS_DB": false, "HAS_TOKEN": false, "SYNCED": false},
+  "assertions": [
+    {"text": "decision.json exists at outputs/decision.json with top-level {action, preconditions_checked, reasoning} keys.", "kind": "file_exists_and_json_shape"},
+    {"text": "decision.json 'action' field equals 'Onboard' (case-insensitive).", "kind": "json_field_equals"},
+    {"text": "decision.json 'preconditions_checked' reflects all four probes (HAS_CONFIG, HAS_DB, HAS_TOKEN, SYNCED) set to false.", "kind": "json_preconditions_match"},
+    {"text": "decision.json 'reasoning' explicitly cites the absent config.yaml (or equivalent missing-config signal) as the trigger for onboarding.", "kind": "reasoning_cites_missing_config"},
+    {"text": "No bash side-effect commands were executed against the real project (no `uv sync`, `startup-radar run`, `git` writes, `make` runs, etc.).", "kind": "no_side_effects"}
+  ]
+}

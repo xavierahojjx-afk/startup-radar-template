@@ -1,9 +1,11 @@
 {
-  "model": "claude-opus-4-7",
-  "includeCoAuthoredBy": true,
   "cleanupPeriodDays": 30,
+  "env": {
+    "PYTHONPATH": ".",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "includeCoAuthoredBy": true,
   "permissions": {
-    "defaultMode": "default",
     "allow": [
       "Read",
       "Glob",
@@ -131,14 +133,20 @@
       "Write(uv.lock)",
       "Write(*.db)",
       "Write(.git/**)"
-    ]
+    ],
+    "defaultMode": "default"
   },
+  "model": "claude-opus-4-7",
   "hooks": {
     "SessionStart": [
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": ".claude/hooks/session-init.sh", "timeout": 5 }
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-init.sh",
+            "timeout": 5
+          }
         ]
       }
     ],
@@ -146,7 +154,11 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": ".claude/hooks/pre-bash.sh", "timeout": 5 }
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-bash.sh",
+            "timeout": 5
+          }
         ]
       }
     ],
@@ -154,7 +166,11 @@
       {
         "matcher": "Edit|Write",
         "hooks": [
-          { "type": "command", "command": ".claude/hooks/post-edit.sh", "timeout": 15 }
+          {
+            "type": "command",
+            "command": ".claude/hooks/post-edit.sh",
+            "timeout": 15
+          }
         ]
       }
     ],
@@ -162,14 +178,20 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": ".claude/hooks/pre-commit-check.sh", "timeout": 30 }
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-commit-check.sh",
+            "timeout": 30
+          }
         ]
       }
     ]
   },
-  "statusLine": { "type": "command", "command": "bash .claude/statusline.sh" },
-  "env": {
-    "PYTHONPATH": ".",
-    "PYTHONDONTWRITEBYTECODE": "1"
+  "statusLine": {
+    "type": "command",
+    "command": "bash .claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "skill-creator@claude-plugins-official": true
   }
 }

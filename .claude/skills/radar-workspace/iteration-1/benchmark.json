@@ -1,0 +1,323 @@
+{
+  "metadata": {
+    "skill_name": "radar",
+    "skill_path": ".claude/skills/radar",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-04-20T16:16:13Z",
+    "evals_run": [
+      "radar-broken",
+      "radar-first-run",
+      "radar-whats-new"
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": "radar-broken",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 30.7,
+        "tokens": 26414,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "decision.json exists at outputs/decision.json with {action, preconditions_checked, reasoning} shape.",
+          "passed": true,
+          "evidence": "File present; all three top-level keys set."
+        },
+        {
+          "text": "decision.json 'action' equals 'Doctor' (case-insensitive; 'diagnose' / 'healthcheck' synonyms accepted).",
+          "passed": true,
+          "evidence": "action='Doctor' (canonical)."
+        },
+        {
+          "text": "decision.json 'reasoning' frames this as a diagnose-before-rerun decision \u2014 it should reference the 0-rows symptom and prefer healthcheck over blindly re-running the pipeline.",
+          "passed": true,
+          "evidence": "Reasoning cites '0 rows with existing config+db is usually a quiet news day OR a source healthcheck issue \u2014 run Doctor first (cheap, fast, surfaces root cause) before re-Running.' Explicit diagnose-before-rerun reasoning."
+        },
+        {
+          "text": "decision.json 'preconditions_checked' shows config / DB / token all present (no missing-state excuse for routing elsewhere).",
+          "passed": true,
+          "evidence": "All four probes true."
+        },
+        {
+          "text": "No side-effect commands executed (no real `startup-radar doctor --network` invocation, etc.).",
+          "passed": true,
+          "evidence": "outputs/ contains only decision.json."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": "radar-first-run",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 13.7,
+        "tokens": 26189,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "decision.json exists at outputs/decision.json with top-level {action, preconditions_checked, reasoning} keys.",
+          "passed": true,
+          "evidence": "File present with all three top-level keys: action='Onboard', preconditions_checked={...}, reasoning='...'."
+        },
+        {
+          "text": "decision.json 'action' field equals 'Onboard' (case-insensitive).",
+          "passed": true,
+          "evidence": "action='Onboard' (canonical form)."
+        },
+        {
+          "text": "decision.json 'preconditions_checked' reflects all four probes (HAS_CONFIG, HAS_DB, HAS_TOKEN, SYNCED) set to false.",
+          "passed": true,
+          "evidence": "preconditions_checked={HAS_CONFIG:false, HAS_DB:false, HAS_TOKEN:false, SYNCED:false} \u2014 all four probes present and false."
+        },
+        {
+          "text": "decision.json 'reasoning' explicitly cites the absent config.yaml (or equivalent missing-config signal) as the trigger for onboarding.",
+          "passed": true,
+          "evidence": "Reasoning cites 'HAS_CONFIG=0 | any -> Onboard' rule and 'HAS_CONFIG=0 takes precedence' as the trigger; also notes config.yaml will be written during onboard flow."
+        },
+        {
+          "text": "No bash side-effect commands were executed against the real project (no `uv sync`, `startup-radar run`, `git` writes, `make` runs, etc.).",
+          "passed": true,
+          "evidence": "outputs/ contains only decision.json (534 bytes); no side-effect artefacts (logs, new config.yaml, db files) written."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": "radar-whats-new",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 18.8,
+        "tokens": 25951,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "decision.json exists at outputs/decision.json with {action, preconditions_checked, reasoning} shape.",
+          "passed": true,
+          "evidence": "File present; all three top-level keys set."
+        },
+        {
+          "text": "decision.json 'action' equals 'Run' (case-insensitive; 'pipeline run' / 'fetch' synonyms also accepted).",
+          "passed": true,
+          "evidence": "action='Run' (canonical)."
+        },
+        {
+          "text": "decision.json 'preconditions_checked' shows HAS_CONFIG, HAS_DB, HAS_TOKEN, SYNCED all true \u2014 enough state to run.",
+          "passed": true,
+          "evidence": "All four probes present and true."
+        },
+        {
+          "text": "decision.json 'reasoning' references wanting fresh rows / latest signals (not 'onboarding' or 'healthcheck').",
+          "passed": true,
+          "evidence": "Reasoning cites intent-words row 'run / check / scan / what's new / fetch' \u2192 Run; explicitly names Serve as not auto-chained absent 'and show me' cue. Framed as fetch, not onboarding/healthcheck."
+        },
+        {
+          "text": "No side-effect commands executed (no real `startup-radar run` invocation).",
+          "passed": true,
+          "evidence": "outputs/ contains only decision.json."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": "radar-broken",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 18.3,
+        "tokens": 25756,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "decision.json exists at outputs/decision.json with {action, preconditions_checked, reasoning} shape.",
+          "passed": true,
+          "evidence": "File present; all three top-level keys set."
+        },
+        {
+          "text": "decision.json 'action' equals 'Doctor' (case-insensitive; 'diagnose' / 'healthcheck' synonyms accepted).",
+          "passed": true,
+          "evidence": "action='doctor' \u2014 matches case-insensitively."
+        },
+        {
+          "text": "decision.json 'reasoning' frames this as a diagnose-before-rerun decision \u2014 it should reference the 0-rows symptom and prefer healthcheck over blindly re-running the pipeline.",
+          "passed": true,
+          "evidence": "'This is a diagnostic intent, not a run/serve intent' and 'if doctor is clean, the 0-row result is likely a filter/criteria issue in config.yaml rather than a broken setup' \u2014 diagnose-first framing, with a filter-path hypothesis layered on."
+        },
+        {
+          "text": "decision.json 'preconditions_checked' shows config / DB / token all present (no missing-state excuse for routing elsewhere).",
+          "passed": true,
+          "evidence": "All four probes true."
+        },
+        {
+          "text": "No side-effect commands executed (no real `startup-radar doctor --network` invocation, etc.).",
+          "passed": true,
+          "evidence": "outputs/ contains only decision.json."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": "radar-first-run",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 20.3,
+        "tokens": 26030,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "decision.json exists at outputs/decision.json with top-level {action, preconditions_checked, reasoning} keys.",
+          "passed": true,
+          "evidence": "File present; all three keys set."
+        },
+        {
+          "text": "decision.json 'action' field equals 'Onboard' (case-insensitive).",
+          "passed": true,
+          "evidence": "action='onboard' \u2014 matches case-insensitively."
+        },
+        {
+          "text": "decision.json 'preconditions_checked' reflects all four probes (HAS_CONFIG, HAS_DB, HAS_TOKEN, SYNCED) set to false.",
+          "passed": true,
+          "evidence": "All four probes present and false."
+        },
+        {
+          "text": "decision.json 'reasoning' explicitly cites the absent config.yaml (or equivalent missing-config signal) as the trigger for onboarding.",
+          "passed": true,
+          "evidence": "Reasoning cites 'no config.yaml (HAS_CONFIG=0)' as a fresh-clone signal; lists ordered onboarding steps including config.yaml authoring."
+        },
+        {
+          "text": "No bash side-effect commands were executed against the real project (no `uv sync`, `startup-radar run`, `git` writes, `make` runs, etc.).",
+          "passed": true,
+          "evidence": "outputs/ contains only decision.json; no side-effect artefacts."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": "radar-whats-new",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 18.9,
+        "tokens": 25781,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "decision.json exists at outputs/decision.json with {action, preconditions_checked, reasoning} shape.",
+          "passed": true,
+          "evidence": "File present; all three top-level keys set."
+        },
+        {
+          "text": "decision.json 'action' equals 'Run' (case-insensitive; 'pipeline run' / 'fetch' synonyms also accepted).",
+          "passed": true,
+          "evidence": "action='uv run startup-radar run' \u2014 non-canonical (skill expects a bare action name like 'Run'); contains the 'run' synonym so treat as a pass on intent but note non-canonical shape."
+        },
+        {
+          "text": "decision.json 'preconditions_checked' shows HAS_CONFIG, HAS_DB, HAS_TOKEN, SYNCED all true \u2014 enough state to run.",
+          "passed": true,
+          "evidence": "All four probes true."
+        },
+        {
+          "text": "decision.json 'reasoning' references wanting fresh rows / latest signals (not 'onboarding' or 'healthcheck').",
+          "passed": true,
+          "evidence": "'to surface this week\\'s new signals we must run the pipeline first' \u2014 explicit fresh-rows framing."
+        },
+        {
+          "text": "No side-effect commands executed (no real `startup-radar run` invocation).",
+          "passed": true,
+          "evidence": "outputs/ contains only decision.json."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 21.0667,
+        "stddev": 8.7237,
+        "min": 13.7,
+        "max": 30.7
+      },
+      "tokens": {
+        "mean": 26184.6667,
+        "stddev": 231.5304,
+        "min": 25951,
+        "max": 26414
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 19.1667,
+        "stddev": 1.0263,
+        "min": 18.3,
+        "max": 20.3
+      },
+      "tokens": {
+        "mean": 25855.6667,
+        "stddev": 151.4937,
+        "min": 25756,
+        "max": 26030
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.00",
+      "time_seconds": "+1.9",
+      "tokens": "+329"
+    }
+  },
+  "notes": []
+}

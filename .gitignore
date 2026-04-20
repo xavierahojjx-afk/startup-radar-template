@@ -50,3 +50,7 @@ desktop.ini
 .coverage
 coverage.xml
 htmlcov/
+
+# Skill eval run outputs (keep evals.json / eval_metadata.json / benchmark.*)
+.claude/skills/*-workspace/iteration-*/eval-*/with_skill/
+.claude/skills/*-workspace/iteration-*/eval-*/without_skill/

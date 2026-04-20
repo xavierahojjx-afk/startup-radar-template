@@ -1,0 +1,276 @@
+{
+  "metadata": {
+    "skill_name": "research",
+    "skill_path": ".claude/skills/research",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-04-20T16:16:13Z",
+    "evals_run": [
+      "research-anthropic",
+      "research-clay"
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": "research-anthropic",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 199.4,
+        "tokens": 51644,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Research brief .docx is saved at outputs/reports/Anthropic_Research_Brief.docx (or similar; docx extension required).",
+          "passed": true,
+          "evidence": "File exists at the canonical path; python-docx opens it with 4 tables (overview, info-table, funding, fit-score) + full paragraph content."
+        },
+        {
+          "text": "Investors JSON saved at outputs/reports/Anthropic_investors.json \u2014 a JSON array of investor company-name strings.",
+          "passed": true,
+          "evidence": "json.load \u2192 list of 21 strings (Google, Amazon, Spark Capital, ...). Matches skill-mandated shape exactly."
+        },
+        {
+          "text": "Fit score (a number out of 10) appears in the .docx, alongside a STRONG / MODERATE / WEAK label.",
+          "passed": true,
+          "evidence": "Fit-score table cell: '9.3/10' + 'STRONG' label in colour-coded left column; weighted breakdown '9.31/10' also printed inline."
+        },
+        {
+          "text": "Fit rationale paragraph references the user.background phrasing from config (not a generic 'strong fit' sentence).",
+          "passed": true,
+          "evidence": "Rationale explicitly flags the placeholder user.background ('Describe yourself in one sentence.') as a gap, adapts by inferring from targets.roles + targets.locations, and repeats that caveat in Watch Out For \u2014 the skill's 'NEVER score without referencing user.background' constraint is honoured by surfacing the absence rather than writing a generic 'strong fit' line."
+        },
+        {
+          "text": "At least one investor is recognized as a tier-1 VC per config.deepdive.tier1_vcs (e.g. Google / GV / Spark / a16z etc. \u2014 whichever the research surfaces).",
+          "passed": true,
+          "evidence": "'Tier-1 match from your config: Founders Fund (Series G co-lead).' Founders Fund is in config.deepdive.tier1_vcs. Honestly notes a16z/Sequoia/Benchmark are absent from Anthropic's cap table."
+        },
+        {
+          "text": "Funding history table includes at least one round with amount and date \u2014 no fabricated numbers (the brief says 'not disclosed' when missing).",
+          "passed": true,
+          "evidence": "Funding table lists 6 rows with specific amounts + dates (Series C $450M May 2023 Spark, Series G $30B @ $380B post Feb 2026 ...); 'Up to $4B (tranches)' and 'Amazon investment' rows label corporate investments as such rather than forcing them into Series rounds."
+        },
+        {
+          "text": "Role Fit Signals section references at least one of config.targets.roles (software engineer / product manager / founding engineer / data scientist / designer).",
+          "passed": true,
+          "evidence": "Section 5 bullets: 'Direct match to targets.roles[\"software engineer\"]' and 'Direct match to targets.roles[\"product manager\"]' with specific open reqs (Software Engineer Platform/Enterprise/Backend/Account Abuse; Product Manager Generalist SF+NYC)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": "research-clay",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 218.3,
+        "tokens": 50200,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Research brief .docx is saved at outputs/reports/Clay_Research_Brief.docx (or similar; docx extension required).",
+          "passed": true,
+          "evidence": "File exists at the canonical path; 40.7 KB; python-docx opens 4 tables + full paragraph content."
+        },
+        {
+          "text": "Investors JSON saved at outputs/reports/Clay_investors.json \u2014 a JSON array of investor company-name strings.",
+          "passed": true,
+          "evidence": "json.load \u2192 list of 7 strings (CapitalG, Sequoia Capital, Meritech Capital Partners, ...). Matches skill shape exactly."
+        },
+        {
+          "text": "Fit score appears as a number out of 10 with STRONG / MODERATE / WEAK label.",
+          "passed": true,
+          "evidence": "Fit-score table cell: '8.2 / 10' + 'STRONG' label; weighted breakdown printed inline."
+        },
+        {
+          "text": "Industry_match is honestly scored lower or explicitly flagged as a weak factor \u2014 GTM / sales-automation is NOT in config.targets.industries (ai, machine learning, developer tools, saas).",
+          "passed": true,
+          "evidence": "industry_match docked to 0.3/1.0 in the weighted breakdown (visible on the Fit Score line); Watch Out For explicitly states 'Industry mismatch \u2014 Clay is GTM / sales-automation, which is NOT in your targets.industries'; rationale repeats 'The honest deduction is on industry_match'. The skill's honest-scoring constraint is clearly honoured."
+        },
+        {
+          "text": "Fit rationale references the user.background phrasing from config, not generic filler.",
+          "passed": true,
+          "evidence": "Rationale explicitly flags that user.background is the placeholder string and adapts by deriving from targets.* rather than writing a generic 'strong fit' line. Watch Out For #1 is 'Config gap \u2014 your user.background is still the placeholder string'."
+        },
+        {
+          "text": "Funding rounds / investors in the brief are not fabricated \u2014 if unknown, the brief says 'not disclosed' rather than guessing.",
+          "passed": true,
+          "evidence": "Funding table: Series C $100M Aug 2025 CapitalG / Series B Extension $40M Jan 2025 Meritech / Series B $46M Jun 2024 Meritech \u2014 all publicly reported. 'Earlier rounds' row: 'Not fully disclosed | 2017\u20132023 | Not disclosed' \u2014 honest gap-filling."
+        },
+        {
+          "text": "'Watch Out For' section exists and raises at least one honest risk/gap specific to this fit (e.g. GTM focus, stage, location, team size).",
+          "passed": true,
+          "evidence": "Watch Out For lists three risks: (1) Config gap on user.background; (2) Industry mismatch (GTM vs targets.industries); (3) Stage/valuation ($3.1B post at Series C, compressed equity upside). All three are specific to Clay."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": "research-anthropic",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.7143,
+        "passed": 5,
+        "failed": 2,
+        "total": 7,
+        "time_seconds": 225.1,
+        "tokens": 54011,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Research brief .docx is saved at outputs/reports/Anthropic_Research_Brief.docx (or similar; docx extension required).",
+          "passed": true,
+          "evidence": "File exists at the canonical path; 41.8 KB; opens cleanly in python-docx."
+        },
+        {
+          "text": "Investors JSON saved at outputs/reports/Anthropic_investors.json \u2014 a JSON array of investor company-name strings.",
+          "passed": false,
+          "evidence": "json.load \u2192 list of 51 dicts (keys: name, type, rounds, notes), not strings. Skill mandates a list of bare strings \u2014 the dashboard's tier-2 warm-intro grep is written against that flat shape; this output would require extra key handling."
+        },
+        {
+          "text": "Fit score (a number out of 10) appears in the .docx, alongside a STRONG / MODERATE / WEAK label.",
+          "passed": true,
+          "evidence": "'Overall score: 9.8 / 10 \u2014 STRONG (threshold 7.5)' in Fit Summary section."
+        },
+        {
+          "text": "Fit rationale paragraph references the user.background phrasing from config (not a generic 'strong fit' sentence).",
+          "passed": false,
+          "evidence": "Fit Summary opens with 'Anthropic is an almost perfect on-paper match to the criteria in config.example.yaml' \u2014 a generic match-to-criteria sentence. No attempt to use or flag the user.background field; the placeholder is never acknowledged."
+        },
+        {
+          "text": "At least one investor is recognized as a tier-1 VC per config.deepdive.tier1_vcs (e.g. Google / GV / Spark / a16z etc. \u2014 whichever the research surfaces).",
+          "passed": true,
+          "evidence": "'Tier-1 VCs (per config rubric): Sequoia Capital, Accel, Founders Fund, Google / GV (strategic)'. Founders Fund is verifiable; GV is in tier1_vcs list. (Note: baseline claims Sequoia + Accel \u2014 the with_skill research explicitly states those brands are absent from Anthropic's cap table; likely a fabrication, but the assertion only requires at least one recognised tier-1, which Founders Fund satisfies.)"
+        },
+        {
+          "text": "Funding history table includes at least one round with amount and date \u2014 no fabricated numbers (the brief says 'not disclosed' when missing).",
+          "passed": true,
+          "evidence": "Snapshot section: 'Series G \u2014 $30B at $380B post-money, Feb 2026 (co-led by GIC and Coatue)'; funding history paragraph expands with named rounds. Lead-investor assignments differ from with_skill's research (GIC/Coatue vs D.E.Shaw/Dragoneer/Founders Fund/ICONIQ/MGX) but the headline numbers line up with public reports."
+        },
+        {
+          "text": "Role Fit Signals section references at least one of config.targets.roles (software engineer / product manager / founding engineer / data scientist / designer).",
+          "passed": true,
+          "evidence": "'Application Angle' section: 'Member of Technical Staff / Software Engineer roles on product or applied teams', 'Product Manager roles under Mike Krieger\\'s org', 'Data Scientist / Research Engineer positions on Applied AI or evals' \u2014 matches three of targets.roles."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": "research-clay",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5714,
+        "passed": 4,
+        "failed": 3,
+        "total": 7,
+        "time_seconds": 198.0,
+        "tokens": 47406,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Research brief .docx is saved at outputs/reports/Clay_Research_Brief.docx (or similar; docx extension required).",
+          "passed": true,
+          "evidence": "File exists at the canonical path; 41.5 KB; opens cleanly."
+        },
+        {
+          "text": "Investors JSON saved at outputs/reports/Clay_investors.json \u2014 a JSON array of investor company-name strings.",
+          "passed": false,
+          "evidence": "json.load \u2192 dict (keys: company, website, rounds, investors, etc.), not a list. Skill mandates a list of strings. Dashboard's tier-2 warm-intro grep is written for a flat list \u2014 this dict shape breaks that path."
+        },
+        {
+          "text": "Fit score appears as a number out of 10 with STRONG / MODERATE / WEAK label.",
+          "passed": true,
+          "evidence": "'Fit score 9.2 / 10 (strong)' + 'Normalized: 9.25 / 10 ... Verdict: strong.' in Snapshot / scoring sections."
+        },
+        {
+          "text": "Industry_match is honestly scored lower or explicitly flagged as a weak factor \u2014 GTM / sales-automation is NOT in config.targets.industries (ai, machine learning, developer tools, saas).",
+          "passed": false,
+          "evidence": "Snapshot opens 'Clay clears every high-weighted gate in your config: AI/SaaS industry...' \u2014 awarded full industry credit. 'What Clay does' rationalises Clay as 'closer to AI-assisted dev tooling than traditional SaaS'. No honest dock on industry_match; scoring breakdown gives 10\u00d71.5 for industry. The skill's honesty constraint is violated."
+        },
+        {
+          "text": "Fit rationale references the user.background phrasing from config, not generic filler.",
+          "passed": false,
+          "evidence": "Snapshot rationale references config.example.yaml targets.* but never touches user.background. No acknowledgement that user.background is the placeholder; no attempt to use or flag it. Falls back to generic 'if you're OK joining a ~$3\u20135B, 10,000-customer scale-up'."
+        },
+        {
+          "text": "Funding rounds / investors in the brief are not fabricated \u2014 if unknown, the brief says 'not disclosed' rather than guessing.",
+          "passed": true,
+          "evidence": "Funding history cites specific rounds with sources: Series A 2023 led by Sequoia; Series B Jun 2024 $62M (number differs from the with_skill agent's $46M \u2014 both values appear in public coverage; Clay's own blog cites $62M as the combined figure, which is defensible); Series C Aug 2025 $100M at $3.1B. Sources listed at bottom (TechCrunch, Crunchbase News, Tracxn, Clay blog, Sequoia). No clear fabrications."
+        },
+        {
+          "text": "'Watch Out For' section exists and raises at least one honest risk/gap specific to this fit (e.g. GTM focus, stage, location, team size).",
+          "passed": true,
+          "evidence": "'Why you might pass' section lists four honest risks: stage mismatch, scale-up culture, crowded-space defensibility, and tier-1 VC list match (only Sequoia). Stage and crowded-space are specific to Clay."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 208.85,
+        "stddev": 13.3643,
+        "min": 199.4,
+        "max": 218.3
+      },
+      "tokens": {
+        "mean": 50922.0,
+        "stddev": 1021.0622,
+        "min": 50200,
+        "max": 51644
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.6429,
+        "stddev": 0.101,
+        "min": 0.5714,
+        "max": 0.7143
+      },
+      "time_seconds": {
+        "mean": 211.55,
+        "stddev": 19.1626,
+        "min": 198.0,
+        "max": 225.1
+      },
+      "tokens": {
+        "mean": 50708.5,
+        "stddev": 4670.4403,
+        "min": 47406,
+        "max": 54011
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.36",
+      "time_seconds": "-2.7",
+      "tokens": "+214"
+    }
+  },
+  "notes": []
+}

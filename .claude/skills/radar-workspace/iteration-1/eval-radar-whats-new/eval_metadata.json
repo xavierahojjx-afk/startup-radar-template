@@ -1,0 +1,13 @@
+{
+  "eval_id": "radar-whats-new",
+  "eval_name": "radar-whats-new",
+  "prompt": "whats new this week, run my radar",
+  "state_simulation": {"HAS_CONFIG": true, "HAS_DB": true, "HAS_TOKEN": true, "SYNCED": true, "GMAIL_ENABLED": true},
+  "assertions": [
+    {"text": "decision.json exists at outputs/decision.json with {action, preconditions_checked, reasoning} shape.", "kind": "file_exists_and_json_shape"},
+    {"text": "decision.json 'action' equals 'Run' (case-insensitive; 'pipeline run' / 'fetch' synonyms also accepted).", "kind": "json_field_equals"},
+    {"text": "decision.json 'preconditions_checked' shows HAS_CONFIG, HAS_DB, HAS_TOKEN, SYNCED all true — enough state to run.", "kind": "json_preconditions_match"},
+    {"text": "decision.json 'reasoning' references wanting fresh rows / latest signals (not 'onboarding' or 'healthcheck').", "kind": "reasoning_cites_fresh_data"},
+    {"text": "No side-effect commands executed (no real `startup-radar run` invocation).", "kind": "no_side_effects"}
+  ]
+}

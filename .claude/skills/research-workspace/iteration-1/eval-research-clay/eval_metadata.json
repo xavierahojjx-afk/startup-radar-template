@@ -1,0 +1,14 @@
+{
+  "eval_id": "research-clay",
+  "eval_name": "research-clay",
+  "prompt": "what do you think about Clay (clay.com, the GTM / sales-automation startup) — should I apply?",
+  "assertions": [
+    {"text": "Research brief .docx is saved at outputs/reports/Clay_Research_Brief.docx (or similar; docx extension required).", "kind": "file_exists"},
+    {"text": "Investors JSON saved at outputs/reports/Clay_investors.json — a JSON array of investor company-name strings.", "kind": "file_exists_and_json_array"},
+    {"text": "Fit score appears as a number out of 10 with STRONG / MODERATE / WEAK label.", "kind": "docx_contains"},
+    {"text": "Industry_match is honestly scored lower or explicitly flagged as a weak factor — GTM / sales-automation is NOT in config.targets.industries (ai, machine learning, developer tools, saas).", "kind": "docx_contains_industry_honesty"},
+    {"text": "Fit rationale references the user.background phrasing from config, not generic filler.", "kind": "docx_contains_specific"},
+    {"text": "Funding rounds / investors in the brief are not fabricated — if unknown, the brief says 'not disclosed' rather than guessing.", "kind": "docx_no_fabricated_numbers"},
+    {"text": "'Watch Out For' section exists and raises at least one honest risk/gap specific to this fit (e.g. GTM focus, stage, location, team size).", "kind": "docx_contains_watch_out_for"}
+  ]
+}

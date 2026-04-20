@@ -1,0 +1,13 @@
+{
+  "eval_id": "radar-broken",
+  "eval_name": "radar-broken",
+  "prompt": "something feels off, is my setup broken? last run returned 0 rows",
+  "state_simulation": {"HAS_CONFIG": true, "HAS_DB": true, "HAS_TOKEN": true, "SYNCED": true},
+  "assertions": [
+    {"text": "decision.json exists at outputs/decision.json with {action, preconditions_checked, reasoning} shape.", "kind": "file_exists_and_json_shape"},
+    {"text": "decision.json 'action' equals 'Doctor' (case-insensitive; 'diagnose' / 'healthcheck' synonyms accepted).", "kind": "json_field_equals"},
+    {"text": "decision.json 'reasoning' frames this as a diagnose-before-rerun decision — it should reference the 0-rows symptom and prefer healthcheck over blindly re-running the pipeline.", "kind": "reasoning_cites_diagnose_not_rerun"},
+    {"text": "decision.json 'preconditions_checked' shows config / DB / token all present (no missing-state excuse for routing elsewhere).", "kind": "json_preconditions_match"},
+    {"text": "No side-effect commands executed (no real `startup-radar doctor --network` invocation, etc.).", "kind": "no_side_effects"}
+  ]
+}

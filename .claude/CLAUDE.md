@@ -113,6 +113,12 @@ For overall refactor plan: @docs/PRODUCTION_REFACTOR_PLAN.md
 For critique/calibration: @docs/CRITIQUE_APPENDIX.md
 For Phase 1 plan (this harness): @docs/plans/phase-1.md
 
+## User-facing skills
+- `/radar` — state-aware orchestrator. Detects repo state and routes to onboarding, pipeline run, dashboard serve, doctor, status, or backup. **Auto-invokable** on app-intent phrases ("run my radar", "what's new", "set me up", "is it broken", "back up"). Subsumes the retired `/setup-radar`, `/run`, `/serve`, `/status`, `/doctor`, `/backup` skills.
+- `/research <Company>` — one-page company research brief (.docx) with fit score vs `config.yaml`. **Auto-invokable** on research/deepdive phrases. Subsumes the retired `/deepdive` skill.
+- `/ship` — sanctioned commit path; env-var gated (`STARTUP_RADAR_SHIP=1`). Explicit invoke only.
+- `/data-branch-bootstrap` / `/data-branch-restore` — GH Actions DB-branch infra ops. Explicit invoke only.
+
 ## Subagents
 - `source-implementer` — scaffold a new data source under `startup_radar/sources/` (Source subclass + registry entry).
 - `filter-tuner` — diagnose `filters.py` precision/recall against fixtures (read-only).
