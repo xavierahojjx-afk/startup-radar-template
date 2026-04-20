@@ -250,7 +250,8 @@ if page == "Dashboard":
     else:
         for _, row in todays_companies.iterrows():
             c1, c2, c3, c4 = st.columns([3, 2, 1, 1])
-            c1.markdown(f"**{row['Company Name']}**")
+            _url = row.get("Website") or row.get("Source URL") or ""
+            c1.markdown(f"**[{row['Company Name']}]({_url})**" if _url else f"**{row['Company Name']}**")
             desc = row["Description"]
             c2.write(desc[:80] + "..." if len(str(desc)) > 80 else desc)
             c3.write(row["Funding Stage"])
